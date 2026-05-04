@@ -1,4 +1,4 @@
-# Session summary · 2026-05-04
+# Session summary · 2026-05-04 (1 hour)
 
 This note captures the day's discussion and written outputs on **project shaping: surface (product form factor), model & capability strategy, and data strategy**.
 
