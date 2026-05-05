@@ -1,4 +1,4 @@
-# Session summary · 2026-05-03
+# Session summary · 2026-05-03 (1 hour)
 
 This note captures the day’s discussion and written outputs on **project shaping: users/scenarios (Ch. 3) and core objects/rules (Ch. 4)**. Use it for tomorrow’s review and for continuing other chapters.
 
