@@ -1,0 +1,8 @@
+# 数据流水线依赖（下载 HF 数据集 + DashScope OpenAI 兼容翻译）
+# Python 建议 3.10+（3.9 亦可，未在 CI 中覆盖）
+
+datasets==4.8.5
+huggingface_hub==1.14.0
+openai==2.36.0
+python-dotenv==1.2.2
+tenacity==9.1.4
