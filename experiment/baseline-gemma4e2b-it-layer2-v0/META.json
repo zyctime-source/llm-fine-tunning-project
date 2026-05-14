@@ -5,11 +5,11 @@
   "stage": "baseline",
   "status": "draft",
   "created_at": "2026-05-12",
-  "updated_at": "2026-05-13",
+  "updated_at": "2026-05-14",
   "parent_experiment": null,
   "base_model": {
     "repo_id": "google/gemma-4-E2B-it",
-    "revision": null,
+    "revision": "b324173c7d5721c2baba7f3b17b3b9b3d34ab1e9",
     "dtype": "auto"
   },
   "training": null,

@@ -14,7 +14,7 @@
   "paths": {
     "manifest_jsonl": "data/eval/layer2/manifest_v0.jsonl",
     "brainstorm_source": "data/processed/brainstorm_vicuna_10k_zh.jsonl",
-    "general_mixed_source": "data/raw/general_mixed/general_mixed.jsonl"
+    "general_mixed_source": "data/raw/general_mixed/general_mixed_train.jsonl"
   },
   "shaping_ref": "_docs/shaping/9_eval_qa_CN.md §9.1.3",
   "proxy_notes": {

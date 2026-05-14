@@ -10,10 +10,15 @@ when you only run text — unnecessary for this Layer 2 JSONL manifest.
 Alpaca-style rows in the manifest may end with a reference assistant turn; for inference
 we strip trailing assistant messages so the model is not conditioned on the gold answer.
 
+Features:
+  - Streaming output: writes each result to JSONL immediately (safe for interruption)
+  - Resume support: --resume to skip already processed layer2_ids
+
 Usage:
   python scripts/layer2_smoke_infer.py --dry-run
   pip install -r requirements-eval.txt
-  python scripts/layer2_smoke_infer.py --limit 3 --max-new-tokens 128
+  python scripts/layer2_smoke_infer.py --limit 50 --max-new-tokens 2048
+  python scripts/layer2_smoke_infer.py --limit 500 --max-new-tokens 2048 --resume
 """
 
 from __future__ import annotations
@@ -52,17 +57,26 @@ def messages_for_generation(messages: list[dict]) -> list[dict] | None:
     return out
 
 
-def load_manifest_rows(path: Path, limit: int) -> list[dict]:
-    rows: list[dict] = []
-    with path.open(encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            rows.append(json.loads(line))
-            if len(rows) >= limit:
-                break
-    return rows
+def load_processed_ids(output_path: Path) -> set[str]:
+    """Load already processed layer2_ids from existing output file for resume support."""
+    if not output_path.exists():
+        return set()
+    processed = set()
+    try:
+        with output_path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                    if "layer2_id" in obj:
+                        processed.add(obj["layer2_id"])
+                except json.JSONDecodeError:
+                    continue
+    except Exception:
+        pass
+    return processed
 
 
 def ensure_eval_dependencies() -> None:
@@ -84,15 +98,29 @@ def ensure_eval_dependencies() -> None:
         )
 
 
-def run_inference(
+def run_inference_streaming(
     model_id: str,
     rows: list[dict],
     max_new_tokens: int,
     output_path: Path,
+    resume: bool = False,
 ) -> None:
+    """
+    Run inference with streaming output (append mode) and optional resume support.
+    Each record is written immediately after generation, safe for interruption.
+    """
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    # Ensure output directory exists
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Load already processed ids if resuming
+    processed_ids = load_processed_ids(output_path) if resume else set()
+    if processed_ids:
+        print(f"Resume mode: found {len(processed_ids)} already processed items, skipping...")
+
+    # Initialize model
     dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(
@@ -103,61 +131,77 @@ def run_inference(
     if not torch.cuda.is_available():
         model = model.to("cpu")
 
-    out_lines: list[dict] = []
-    for rec in rows:
-        lid = rec["layer2_id"]
-        msgs_in = messages_for_generation(rec["messages"])
-        if msgs_in is None:
-            print(f"SKIP {lid}: could not derive user-terminated prompt from messages", file=sys.stderr)
-            continue
+    pad_id = tokenizer.pad_token_id
+    if pad_id is None:
+        pad_id = tokenizer.eos_token_id
 
-        tokenized = tokenizer.apply_chat_template(
-            msgs_in,
-            add_generation_prompt=True,
-            return_tensors="pt",
-            return_dict=True,
-        )
+    # Open file in append mode (create if not exists)
+    with output_path.open("a", encoding="utf-8") as fout:
+        processed_count = 0
+        skipped_count = 0
 
-        input_ids = tokenized["input_ids"].to(model.device)
-        attention_mask = tokenized.get("attention_mask")
-        if attention_mask is not None:
-            attention_mask = attention_mask.to(model.device)
+        for rec in rows:
+            lid = rec["layer2_id"]
 
-        pad_id = tokenizer.pad_token_id
-        if pad_id is None:
-            pad_id = tokenizer.eos_token_id
+            # Skip if already processed (resume mode)
+            if lid in processed_ids:
+                print(f"SKIP {lid}: already in output (resume)")
+                skipped_count += 1
+                continue
 
-        with torch.inference_mode():
-            generated = model.generate(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                max_new_tokens=max_new_tokens,
-                do_sample=False,
-                temperature=None,
-                top_p=None,
-                pad_token_id=pad_id,
+            msgs_in = messages_for_generation(rec["messages"])
+            if msgs_in is None:
+                print(f"SKIP {lid}: could not derive user-terminated prompt from messages", file=sys.stderr)
+                continue
+
+            # Generation
+            tokenized = tokenizer.apply_chat_template(
+                msgs_in,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                return_dict=True,
             )
 
-        prompt_len = input_ids.shape[1]
-        new_tokens = generated[0, prompt_len:]
-        text = tokenizer.batch_decode([new_tokens], skip_special_tokens=True)[0]
+            input_ids = tokenized["input_ids"].to(model.device)
+            attention_mask = tokenized.get("attention_mask")
+            if attention_mask is not None:
+                attention_mask = attention_mask.to(model.device)
 
-        out_lines.append(
-            {
+            with torch.inference_mode():
+                generated = model.generate(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    max_new_tokens=max_new_tokens,
+                    do_sample=False,
+                    temperature=None,
+                    top_p=None,
+                    pad_token_id=pad_id,
+                )
+
+            prompt_len = input_ids.shape[1]
+            new_tokens = generated[0, prompt_len:]
+            text = tokenizer.batch_decode([new_tokens], skip_special_tokens=True)[0]
+
+            # Build result and write immediately (streaming)
+            result = {
                 "layer2_id": lid,
                 "stratum": rec.get("stratum"),
                 "prompt_message_count": len(msgs_in),
                 "max_new_tokens": max_new_tokens,
                 "completion_preview": text[:2000],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
-        )
-        print(f"OK {lid} ({rec.get('stratum')}) preview_len={len(text)}")
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as f:
-        for obj in out_lines:
-            f.write(json.dumps(obj, ensure_ascii=False) + "\n")
-    print(f"Wrote {len(out_lines)} lines -> {output_path}")
+            # Write immediately and flush to ensure persistence
+            fout.write(json.dumps(result, ensure_ascii=False) + "\n")
+            fout.flush()
+
+            processed_count += 1
+            print(f"OK {lid} ({rec.get('stratum')}) preview_len={len(text)}")
+
+    total = processed_count + skipped_count
+    print(f"\nSummary: processed {processed_count} new + skipped {skipped_count} existing = {total} total")
+    print(f"Output file: {output_path}")
 
 
 def main() -> None:
@@ -173,6 +217,7 @@ def main() -> None:
         help="Output JSONL (default: under experiment/baseline.../results/)",
     )
     p.add_argument("--dry-run", action="store_true", help="Validate manifest only; do not load the model.")
+    p.add_argument("--resume", action="store_true", help="Resume from existing output file (skip already processed items).")
     args = p.parse_args()
 
     load_repo_dotenv()
@@ -180,10 +225,21 @@ def main() -> None:
     if not args.manifest.is_file():
         sys.exit(f"Manifest not found: {args.manifest}")
 
-    rows = load_manifest_rows(args.manifest, args.limit)
+    # Load manifest rows
+    rows: list[dict] = []
+    with args.manifest.open(encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rows.append(json.loads(line))
+            if len(rows) >= args.limit:
+                break
+
     if not rows:
         sys.exit("No manifest rows loaded.")
 
+    # Validate rows
     for rec in rows:
         lid = rec["layer2_id"]
         g = messages_for_generation(rec["messages"])
@@ -198,6 +254,7 @@ def main() -> None:
 
     ensure_eval_dependencies()
 
+    # Determine output path
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%MZ")
     out = args.out
     if out is None:
@@ -209,7 +266,7 @@ def main() -> None:
             / f"smoke_infer_{ts}.jsonl"
         )
 
-    run_inference(args.model, rows, args.max_new_tokens, out)
+    run_inference_streaming(args.model, rows, args.max_new_tokens, out, resume=args.resume)
 
 
 if __name__ == "__main__":

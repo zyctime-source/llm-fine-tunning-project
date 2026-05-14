@@ -59,7 +59,7 @@ pip install -r requirements-eval.txt
 
 ## 待办（跑基线时勾选）
 
-- [ ] 冻结 `base_model.revision`（Hub commit）
+- [x] 冻结 `base_model.revision`（Hub commit：`b324173c7d5721c2baba7f3b17b3b9b3d34ab1e9`）
 - [x] 环境冒烟：已跑通 `layer2_smoke_infer.py`（3 条，`max_new_tokens=128`），路径见 `META.json` → `results`
 - [ ] 跑满 500 条 Layer 2 推理
 - [ ] （可选）评委打分
