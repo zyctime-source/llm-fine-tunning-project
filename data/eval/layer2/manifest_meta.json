@@ -1,0 +1,24 @@
+{
+  "manifest_version": "layer2-v0",
+  "total_items": 500,
+  "strata": {
+    "core": 200,
+    "general": 200,
+    "zh_guard": 100
+  },
+  "seeds": {
+    "core": 42,
+    "general": 43,
+    "zh_guard": 44
+  },
+  "paths": {
+    "manifest_jsonl": "data/eval/layer2/manifest_v0.jsonl",
+    "brainstorm_source": "data/processed/brainstorm_vicuna_10k_zh.jsonl",
+    "general_mixed_source": "data/raw/general_mixed/general_mixed.jsonl"
+  },
+  "shaping_ref": "_docs/shaping/9_eval_qa_CN.md §9.1.3",
+  "proxy_notes": {
+    "general": "Shaping Layer1 cites X-AlpacaEval for general instruction-following; v0 uses tatsu-lab/alpaca-style en rows from general_mixed until HF datasets load is stable.",
+    "zh_guard": "Shaping cites CMT-Eval for Chinese scenes; v0 uses FreedomIntelligence/evol-instruct-chinese rows from general_mixed until CMT-Eval is wired."
+  }
+}

@@ -5,6 +5,7 @@ Subcommands:
 
 - ``download``: run ``download_hf`` for brainstorm + general mix.
 - ``translate``: run ``translate_qwen`` to append translated JSONL.
+- ``export-brainstorm-val``: slice ``train.jsonl`` after the training head and align zh rows for validation.
 
 Path handling:
 
@@ -22,6 +23,7 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPOSITORY_ROOT))
 
+from data_pipeline.brainstorm_validation import export_brainstorm_validation
 from data_pipeline.download_hf import download_brainstorm_vicuna, download_general_mixed
 from data_pipeline.settings import DataPipelineSettings
 from data_pipeline.translate_qwen import translate_brainstorm_file
@@ -64,15 +66,43 @@ def run_translate_command(_: argparse.Namespace) -> int:
     return 0
 
 
+def run_export_brainstorm_val_command(_: argparse.Namespace) -> int:
+    """
+    Export English + aligned Chinese brainstorm validation JSONL; print JSON summary.
+
+    Args:
+        _: Parsed namespace placeholder.
+
+    Returns:
+        Exit code ``0`` on success.
+    """
+    settings = DataPipelineSettings.from_env()
+    if settings.brainstorm_val_export_n <= 0:
+        print(
+            json.dumps(
+                {
+                    "skipped": True,
+                    "reason": "BRAINSTORM_VAL_EXPORT_N <= 0",
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
+    summary = export_brainstorm_validation(settings)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0
+
+
 def main() -> int:
     """
-    Parse CLI arguments and dispatch to ``run_download_command`` or ``run_translate_command``.
+    Parse CLI arguments and dispatch download / translate / export-brainstorm-val.
 
     Returns:
         Subcommand exit code as int.
     """
     parser = argparse.ArgumentParser(
-        description="Sprint 1 data: Hugging Face download and Qwen translation"
+        description="Sprint 1 data: Hugging Face download, Qwen translation, brainstorm val export"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -87,6 +117,12 @@ def main() -> int:
         help="Translate brainstorm train.jsonl to Chinese (resumable)",
     )
     translate_parser.set_defaults(func=run_translate_command)
+
+    export_val_parser = subparsers.add_parser(
+        "export-brainstorm-val",
+        help="Write validation_en.jsonl + zh_validation after train head (see .env)",
+    )
+    export_val_parser.set_defaults(func=run_export_brainstorm_val_command)
 
     parsed_args = parser.parse_args()
     command_handler = parsed_args.func

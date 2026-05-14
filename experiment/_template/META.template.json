@@ -1,0 +1,49 @@
+{
+  "schema_version": "experiment-meta-v0",
+  "experiment_id": "REPLACE_ME",
+  "experiment_kind": "training",
+  "stage": "poc",
+  "status": "draft",
+  "created_at": "YYYY-MM-DD",
+  "updated_at": "YYYY-MM-DD",
+  "parent_experiment": null,
+  "base_model": {
+    "repo_id": "google/gemma-4-E2B-it",
+    "revision": null,
+    "dtype": "auto"
+  },
+  "training": {
+    "method": "LoRA",
+    "rank": null,
+    "epochs": null,
+    "learning_rate": null,
+    "seed": 42,
+    "notes": null
+  },
+  "data_recipe": {
+    "spec_doc": "_docs/execution/s1-data-v1.0-spec_CN.md",
+    "recipe_id": "v1.0",
+    "data_mix": {
+      "brainstorm_en": null,
+      "brainstorm_cn": null,
+      "general": null,
+      "seed": null
+    },
+    "train_manifest_or_path": null
+  },
+  "evaluation": {
+    "manifest_version": "layer2-v0",
+    "manifest_path": "data/eval/layer2/manifest_v0.jsonl",
+    "eval_protocol_id": "eval-protocol-v0",
+    "eval_protocol_doc": "_docs/execution/s1-baseline-report_CN.md",
+    "judge_model": null
+  },
+  "results": {
+    "artifacts_dir": null,
+    "raw_outputs_dir": null,
+    "metrics_path": null
+  },
+  "baseline_scores": null,
+  "result_scores": null,
+  "decision": null
+}

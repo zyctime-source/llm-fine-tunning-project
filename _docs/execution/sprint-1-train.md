@@ -30,12 +30,14 @@
 ### Week 1：数据与基线准备
 
 - 冻结 `v1.0` 数据配方（对齐 `shaping/7_data_CN.md`）。
-- 产出实验元数据模板（实验 ID、父实验、数据版本、结果摘要）。
+- 产出实验元数据模板（实验 ID、父实验、数据版本、结果摘要）。（模板与基线实例草稿见 [experiment/README.md](../../experiment/README.md)。）
 - 跑基座模型基线评估（Layer 2）。
 
 交付物：
-- `s1-data-v1.0-spec`（文档）
-- `s1-baseline-report`（报告）
+
+- `s1-data-v1.0-spec`（文档）— 已定稿：[_docs/execution/s1-data-v1.0-spec_CN.md](s1-data-v1.0-spec_CN.md)
+- `s1-baseline-report`（报告）— 骨架已建：[_docs/execution/s1-baseline-report_CN.md](s1-baseline-report_CN.md)（跑完 Layer2 后填入实测并改状态为已定稿）
+- 实验元数据模板 + 基线实例（草稿）：[experiment/README.md](../../experiment/README.md)（`_template/` 与 `baseline-gemma4e2b-it-layer2-v0/`）
 
 ### Week 2：PoC 快速闭环
 

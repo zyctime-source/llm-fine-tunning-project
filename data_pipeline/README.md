@@ -49,6 +49,8 @@ pip install -r requirements-data.txt
 pip install -r requirements-data.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
+**与评测环境的关系**：Layer 2 推理 / 基线评测使用仓库根目录的 [requirements-eval.txt](../requirements-eval.txt)（PyTorch、`transformers` 等），与上文 `requirements-data.txt` **依赖栈不同**（含 NumPy 版本策略差异）。建议**另建 venv**（例如 `.venv-eval` 或 Conda 环境 `llm-eval`），安装步骤见 [experiment/README.md](../experiment/README.md) §「Layer 2 推理 / 冒烟」。
+
 #### 3. 配置 API 与环境变量
 
 在**仓库根目录**（与 [`.env.example`](../.env.example) 同级）创建 `.env` 文件，不要放在 `data_pipeline/` 子目录内。可先复制模板再编辑：
@@ -85,16 +87,20 @@ TRANSLATE_MODEL=qwen-max
 ```shell
 python -m data_pipeline download
 python -m data_pipeline translate
+python -m data_pipeline export-brainstorm-val
 ```
 
-调试翻译时可在 `.env` 中设置 `TRANSLATE_MAX_ITEMS=5`，确认输出与费用后再删除该限制跑全量。
+`export-brainstorm-val`：在 **`train.jsonl`** 跳过训练 head（默认 **5000** 条有效行）之后截取 **`BRAINSTORM_VAL_EXPORT_N`（默认 3000）** 条英文，再从 **`brainstorm_vicuna_10k_zh.jsonl`** 按 **`id`** 对齐写出中文验证集；详见 [_docs/execution/s1-data-v1.0-spec_CN.md](../_docs/execution/s1-data-v1.0-spec_CN.md) §3.5、§4.4。
+
+调试翻译时可在 `.env` 中设置 `TRANSLATE_MAX_ITEMS=5`，确认输出与费用后再删除该限制跑全量。导出脑暴验证前请确保已对覆盖验证窗的 `id` 跑过足够翻译（或使用 `BRAINSTORM_VAL_REQUIRE_FULL_ZH=1` 强制检齐）。
 
 ## 3 功能概览
 
 | 子命令 | 作用 |
 |--------|------|
-| `download` | 下载 `DevQuasar/brainstorm_vicuna_10k` 各 split 为 `train.jsonl` / `test.jsonl`；从两个 HF 数据集按 `.env` 抽样并归一化为 `general_mixed.jsonl` |
+| `download` | 下载 `DevQuasar/brainstorm_vicuna_10k` 各 split 为 `train.jsonl` / `test.jsonl`；从两个 HF 数据集按 `.env` 抽样并归一化，默认写出 `general_mixed_train.jsonl` + `general_mixed_validation.jsonl`（`GENERAL_VAL_N=0` 时仅写 `general_mixed.jsonl`） |
 | `translate` | 读取 `BRAINSTORM_SOURCE_JSONL`（默认 train 分片），逐条调用云端模型翻译，写入 `TRANSLATED_JSONL_PATH`；**已存在的 `id` 会跳过**，支持断点续跑 |
+| `export-brainstorm-val` | 从 `train.jsonl` 训练 head 之后截取英文窗，并按 `id` 对齐 `brainstorm_vicuna_10k_zh.jsonl` 写出验证集 + `brainstorm_validation_meta.json` |
 
 ## 4 配置说明（摘要）
 
@@ -111,8 +117,13 @@ python -m data_pipeline translate
 | `raw/brainstorm_vicuna_10k/train.jsonl` | 训练分片，原始 HF 行 JSON（含 `id`、`conversations`） |
 | `raw/brainstorm_vicuna_10k/test.jsonl` | 测试分片 |
 | `raw/brainstorm_vicuna_10k/download_meta.json` | 下载元信息（repo、revision、各 split 条数） |
-| `raw/general_mixed/general_mixed.jsonl` | 通用混合抽样结果，统一为 `messages` 结构 |
-| `raw/general_mixed/download_meta.json` | 抽样条数、种子、输出路径等 |
+| `raw/brainstorm_vicuna_10k/validation_en.jsonl` | `export-brainstorm-val`：脑暴英文验证（默认 3000；与 §4.1 训练 head **id 不交**） |
+| `raw/general_mixed/general_mixed_train.jsonl` | 通用混合**训练**子集（默认 3000 行，`messages` 结构） |
+| `raw/general_mixed/general_mixed_validation.jsonl` | 通用混合**验证**子集（默认 1000 行；与训练 **id 不相交**，按语种尾部切分） |
+| `raw/general_mixed/general_mixed.jsonl` | 仅当 **`GENERAL_VAL_N=0`** 时写入：全套混合（兼容旧行为） |
+| `raw/general_mixed/download_meta.json` | 抽样条数、种子、输出路径、`split_mode` 等 |
+| `processed/brainstorm_vicuna_10k_zh_validation.jsonl` | `export-brainstorm-val`：与 `validation_en.jsonl` **同 id 顺序** 的译稿子集（缺译条目不写入，见 meta） |
+| `processed/brainstorm_validation_meta.json` | 验证导出摘要：`written_en` / `written_zh` / `missing_zh_*` 等 |
 | `processed/brainstorm_vicuna_10k_zh.jsonl` | 中文翻译结果（每行含 `id`、`conversations_zh`、`conversations_en`） |
 | `processed/translation_checkpoint.json` | 最近一次翻译任务摘要 |
 
@@ -127,9 +138,24 @@ python -m data_pipeline translate
 | [general_normalize.py](general_normalize.py) | 将 Alpaca 类或 ShareGPT 式 `conversations` 归一为训练友好结构 |
 | [conversation_format.py](conversation_format.py) | 多轮对话拼 prompt、解析模型 JSON、校验 `from` 顺序 |
 | [translate_qwen.py](translate_qwen.py) | OpenAI 兼容客户端调用 DashScope + 重试与节流 |
-| [__main__.py](__main__.py) | `download` / `translate` 子命令入口 |
+| [brainstorm_validation.py](brainstorm_validation.py) | `export-brainstorm-val`：训练 head 后的英文窗 + 译稿对齐 |
+| [__main__.py](__main__.py) | `download` / `translate` / `export-brainstorm-val` 子命令入口 |
 
 ## 7 通用数据（Alpaca / ShareGPT）
+
+**落盘位置（重要）：** 通用混合**不在** `data/raw/` 根目录下单独散放，而在子目录 **`data/raw/general_mixed/`**（与 `brainstorm_vicuna_10k/` 并列）。默认（`GENERAL_VAL_N>0`）写入：
+
+- `data/raw/general_mixed/general_mixed_train.jsonl`
+- `data/raw/general_mixed/general_mixed_validation.jsonl`
+- `data/raw/general_mixed/download_meta.json`
+
+若 `.env` 中 **`GENERAL_VAL_N=0`**，则只写一个 `general_mixed.jsonl`。
+
+路径可由 `.env` 中的 `GENERAL_RAW_DIR` 覆盖。
+
+**何时会生成：** 只有执行 **`python -m data_pipeline download`** 时才会写入（同一条命令里先下 brainstorm，再下通用混合）。**仅运行 `translate` 不会生成**通用数据。
+
+若该目录不存在：在仓库根目录重新跑一遍 `download`，并查看终端里第二段 JSON（`general_en_n_obtained` / `general_zh_n_obtained` 等）是否报错或条数为 0。
 
 - 默认英文：`tatsu-lab/alpaca`（Alpaca 三字段，归一为两轮 `messages`）。
 - 默认中文：`FreedomIntelligence/evol-instruct-chinese`（需能被 [general_normalize.py](general_normalize.py) 识别为 `conversations` 或 `instruction`/`output` 等常见字段）。

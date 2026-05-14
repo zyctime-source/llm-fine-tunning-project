@@ -1,0 +1,44 @@
+{
+  "schema_version": "experiment-meta-v0",
+  "experiment_id": "baseline-gemma4e2b-it-layer2-v0",
+  "experiment_kind": "eval_only",
+  "stage": "baseline",
+  "status": "draft",
+  "created_at": "2026-05-12",
+  "updated_at": "2026-05-13",
+  "parent_experiment": null,
+  "base_model": {
+    "repo_id": "google/gemma-4-E2B-it",
+    "revision": null,
+    "dtype": "auto"
+  },
+  "training": null,
+  "data_recipe": {
+    "spec_doc": "_docs/execution/s1-data-v1.0-spec_CN.md",
+    "recipe_id": "v1.0-skip-seed",
+    "notes": "Eval-only baseline; no training mix. Aligns with Sprint 1 data spec for lineage."
+  },
+  "evaluation": {
+    "manifest_version": "layer2-v0",
+    "manifest_path": "data/eval/layer2/manifest_v0.jsonl",
+    "manifest_meta_path": "data/eval/layer2/manifest_meta.json",
+    "eval_protocol_id": "eval-protocol-v0",
+    "eval_protocol_doc": "_docs/execution/s1-baseline-report_CN.md",
+    "judge_model": "qwen3.6-plus",
+    "item_count": 500
+  },
+  "results": {
+    "artifacts_dir": null,
+    "raw_outputs_dir": "experiment/baseline-gemma4e2b-it-layer2-v0/results",
+    "metrics_path": null,
+    "smoke_infer_jsonl": "experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260513T1556Z.jsonl",
+    "smoke_infer_profile": {
+      "items": 3,
+      "max_new_tokens": 128,
+      "script": "scripts/layer2_smoke_infer.py"
+    }
+  },
+  "baseline_scores": null,
+  "result_scores": null,
+  "decision": null
+}

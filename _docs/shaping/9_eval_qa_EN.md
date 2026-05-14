@@ -52,6 +52,11 @@
 
 **Purpose**: Quickly detect "whether degradation occurred," primary evaluation set for experiment iteration
 
+**Why isn't this the same count as the "validation" splits in the data spec?**  
+The ~**4,000** rows in [_docs/execution/s1-data-v1.0-spec_CN.md](../execution/s1-data-v1.0-spec_CN.md) (`general_mixed_validation` **1,000** + brainstorm export **3,000**) are **training-pipeline hold-outs**: cut from the same cohort of material as the 13k training recipe, used for early stopping, coarse hyperparameter tuning, monitoring during training, etc.—large enough to be relatively stable.  
+The ~**500** Layer 2 items here are **evaluation-pipeline regression checks**: after training (or per checkpoint), a **small, fixed** suite to run often and cheaply to detect capability regressions and compare experiments; at ~4k items, scoring and compute per iteration usually become impractical.  
+So **13k train, ~4k train-time validation, ~500 Layer 2 regression** serve **different roles**; they are **not** "one combined validation = 4k + 500," and Layer 2 **does not replace** train-time hold-out (nor vice versa).
+
 | Type | Scale | Selection Criteria |
 |------|-------|-------------------|
 | **Core Capability Questions** | 200 items | Selected from Layer 1 for high relevance to "brainstorming + summarization" |
@@ -62,6 +67,8 @@
 - Moderate scale: Single evaluation cost controllable (~500 items)
 - Tiered coverage: Core capabilities + general safeguard + language protection
 - Historical errors: Track questions where "model performed poorly" in past experiments
+
+**Relationship to repo implementation (Sprint 1)**: The "selected from Layer 1" wording above is the **target intent** at shaping level. The checked-in **`layer2-v0` manifest** is built from local JSONL snapshots with fixed seeds; general and Chinese strata use **proxy** sources for X-AlpacaEval and CMT-Eval—see [_docs/eval/layer2/README.md](../eval/layer2/README.md). Do not conflate the Layer 2 regression list with **`general_mixed_validation.jsonl`**, which is a training hold-out split.
 
 ### 9.1.4 Layer 3: Production Acceptance Set
 

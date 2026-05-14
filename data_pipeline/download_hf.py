@@ -4,7 +4,9 @@ Download Hugging Face datasets and write general-mix JSONL.
 Functions:
 
 - ``download_brainstorm_vicuna``: load ``brainstorm_vicuna_10k`` (all splits), one ``.jsonl`` per split, plus ``download_meta.json``.
-- ``download_general_mixed``: sample from two HF datasets (EN + ZH), normalize via ``general_normalize``, merge to ``general_mixed.jsonl``.
+- ``download_general_mixed``: sample from two HF datasets (EN + ZH), normalize via ``general_normalize``, merge to
+  ``general_mixed_train.jsonl`` + ``general_mixed_validation.jsonl`` when ``general_val_n > 0``, else legacy single
+  ``general_mixed.jsonl``.
 
 Requires ``datasets`` / ``huggingface_hub``. Run from repo root in a venv; set ``HF_TOKEN`` when needed.
 """
@@ -176,15 +178,25 @@ def _collect_normalized_samples(
 
 def download_general_mixed(settings: DataPipelineSettings) -> dict[str, Any]:
     """
-    Sample EN and ZH HF datasets separately, merge, and write ``general_mixed.jsonl``.
+    Sample EN and ZH HF datasets separately, normalize, merge, and write JSONL.
+
+    When ``general_val_n > 0``:
+
+    - Split each language list: last ``general_val_n // 2`` English and remaining count on ZH side go to validation;
+      earlier rows form the training pool (deterministic given sampled order).
+    - Write ``general_mixed_train.jsonl`` then ``general_mixed_validation.jsonl``.
+
+    When ``general_val_n == 0`` (legacy): write all rows to ``general_mixed.jsonl``.
 
     Args:
-        settings: Includes ``general_en_*``, ``general_zh_*``, ``general_seed``, ``general_raw_dir``.
+        settings: Includes ``general_en_*``, ``general_zh_*``, ``general_seed``, ``general_raw_dir``,
+            ``general_val_n``.
 
     Returns:
-        Metadata dict: requested vs obtained counts, output path, seed, etc.
+        Metadata dict with paths, written row counts, ``seed``, etc.
 
     Raises:
+        ValueError: If validation hold-out size exceeds available rows per language.
         OSError: On disk write failure.
         Exceptions from ``load_dataset`` or I/O.
     """
@@ -222,10 +234,7 @@ def download_general_mixed(settings: DataPipelineSettings) -> dict[str, Any]:
         rng=rng,
     )
 
-    merged_rows = english_rows + chinese_rows
-    mixed_output_path = output_dir / "general_mixed.jsonl"
-    written_rows = _write_jsonl_file(mixed_output_path, merged_rows)
-
+    val_n = settings.general_val_n
     download_meta: dict[str, Any] = {
         "general_total_n_config": settings.general_total_n,
         "general_en_repo": settings.general_en_repo,
@@ -234,10 +243,50 @@ def download_general_mixed(settings: DataPipelineSettings) -> dict[str, Any]:
         "general_zh_repo": settings.general_zh_repo,
         "general_zh_n_requested": settings.general_zh_n,
         "general_zh_n_obtained": len(chinese_rows),
-        "written_rows": written_rows,
         "seed": settings.general_seed,
-        "output": str(mixed_output_path),
+        "general_val_n": val_n,
     }
+
+    if val_n <= 0:
+        merged_rows = english_rows + chinese_rows
+        mixed_output_path = output_dir / "general_mixed.jsonl"
+        written_rows = _write_jsonl_file(mixed_output_path, merged_rows)
+        download_meta.update(
+            {
+                "written_rows": written_rows,
+                "output": str(mixed_output_path),
+                "split_mode": "single_file",
+            }
+        )
+    else:
+        val_en = val_n // 2
+        val_zh = val_n - val_en
+        if len(english_rows) < val_en or len(chinese_rows) < val_zh:
+            raise ValueError(
+                f"general_val_n={val_n} requires at least en tail={val_en}, zh tail={val_zh} "
+                f"but obtained en={len(english_rows)}, zh={len(chinese_rows)}"
+            )
+        en_split = len(english_rows) - val_en
+        zh_split = len(chinese_rows) - val_zh
+        train_rows = english_rows[:en_split] + chinese_rows[:zh_split]
+        val_rows = english_rows[en_split:] + chinese_rows[zh_split:]
+
+        train_path = output_dir / "general_mixed_train.jsonl"
+        val_path = output_dir / "general_mixed_validation.jsonl"
+        written_train = _write_jsonl_file(train_path, train_rows)
+        written_val = _write_jsonl_file(val_path, val_rows)
+        download_meta.update(
+            {
+                "written_train_rows": written_train,
+                "written_val_rows": written_val,
+                "train_output": str(train_path),
+                "validation_output": str(val_path),
+                "val_en_tail": val_en,
+                "val_zh_tail": val_zh,
+                "split_mode": "train_val_by_language_tail",
+            }
+        )
+
     meta_path = output_dir / "download_meta.json"
     meta_path.write_text(
         json.dumps(download_meta, ensure_ascii=False, indent=2), encoding="utf-8"

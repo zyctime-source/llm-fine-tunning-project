@@ -1,0 +1,14 @@
+# Layer 2 baseline / smoke inference (Gemma-4-E2B-IT + transformers).
+# Use a dedicated venv. If `import transformers` fails (NumPy 2 vs SciPy/sklearn):
+#   pip install "numpy>=1.26,<2" --force-reinstall
+# then reinstall torch / transformers.
+#
+# Text-only Layer 2 uses AutoTokenizer (see scripts/layer2_smoke_infer.py), so you do NOT
+# need torchvision or pillow for smoke/baseline JSONL. If you switch to AutoProcessor
+# for multimodal Gemma-4, add pillow and a torch-matched torchvision build.
+torch>=2.1.0
+transformers>=4.48.0
+accelerate>=0.30.0
+safetensors>=0.4.0
+numpy>=1.26,<2
+python-dotenv>=1.0.0
