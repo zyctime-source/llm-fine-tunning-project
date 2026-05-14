@@ -270,6 +270,7 @@ manifest 在**评测流水线**的多个阶段被使用：
 | [_docs/execution/s1-baseline-report_CN.md](../execution/s1-baseline-report_CN.md) | 基线报告骨架；§3 绑定 manifest 与评测协议 |
 | [_docs/execution/s1-data-v1.0-spec_CN.md](../execution/s1-data-v1.0-spec_CN.md) | 训练数据与训练向验证集规格（与 Layer 2 并行，勿混用） |
 | [Sprint1-dataset_download_processing_CN.md](Sprint1-dataset_download_processing_CN.md) | 同日期数据准备备忘（下载、翻译、export-brainstorm-val） |
+| [Sprint1-baseline-gemma-layer2-infer_CN.md](Sprint1-baseline-gemma-layer2-infer_CN.md) | 基线 Gemma 选型、Hub 下载与 revision、评测环境、冒烟与全量 manifest 推理 |
 
 ---
 
@@ -278,4 +279,4 @@ manifest 在**评测流水线**的多个阶段被使用：
 | 日期 | 修订 |
 |------|------|
 | 2026-05-14 | 初版：对齐 `layer2-v0`、`s1-baseline-report` §0/§3 与 eval README |
-| 2026-05-14 | 优化：新增「什么是 manifest」独立小节，重组「为什么需要」为 3.1-3.4 分点，扩展「什么时候用到」为 8.1-8.4 全流程说明 |
+| 2026-05-14 | 相关文档索引：增加 [Sprint1-baseline-gemma-layer2-infer_CN.md](Sprint1-baseline-gemma-layer2-infer_CN.md)（基线推理备忘） |

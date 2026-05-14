@@ -9,9 +9,7 @@
 |------|------|
 | 基线报告（主叙事与 §4 协议） | [_docs/execution/s1-baseline-report_CN.md](../../_docs/execution/s1-baseline-report_CN.md) |
 | Layer 2 manifest 说明 | [_docs/eval/layer2/README.md](../../_docs/eval/layer2/README.md) |
-| 数据配方 | [_docs/execution/s1-data-v1.0-spec_CN.md](../../_docs/execution/s1-data-v1.0-spec_CN.md) |
-
-## 目录约定
+| Sprint 备忘：基线 Gemma + Layer 2 推理 | [_docs/sprints/Sprint1-baseline-gemma-layer2-infer_CN.md](../../_docs/sprints/Sprint1-baseline-gemma-layer2-infer_CN.md) |
 
 | 路径 | 用途 |
 |------|------|
