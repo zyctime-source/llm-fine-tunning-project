@@ -14,6 +14,24 @@ if [ ! -f "requirements-train.txt" ]; then
     exit 1
 fi
 
+# 加载环境变量（HF_TOKEN 等）
+if [ -f ".env" ]; then
+    echo ""
+    echo "加载环境变量 (.env)..."
+    set -a
+    source .env
+    set +a
+    echo "✓ 环境变量已加载"
+    if [ -n "$HF_TOKEN" ]; then
+        echo "  HF_TOKEN: 已设置"
+    fi
+    if [ -n "$HF_ENDPOINT" ]; then
+        echo "  HF_ENDPOINT: $HF_ENDPOINT"
+    fi
+else
+    echo "⚠️ 警告: 未找到 .env 文件，可能需要手动设置 HF_TOKEN"
+fi
+
 # 检查 GPU
 if ! command -v nvidia-smi &> /dev/null; then
     echo "错误: 未检测到 nvidia-smi，请确认 GPU 环境"
@@ -89,6 +107,8 @@ echo "开始训练"
 echo "=========================================="
 
 # 运行训练（使用 4-bit 量化节省显存，5090 24GB 应该足够）
+echo ""
+echo "启动训练..."
 python3 scripts/train_poc.py \
     --data_path data/poc_v1.0_1k.jsonl \
     --output_dir experiment/s1-poc-e01 \
@@ -102,8 +122,7 @@ python3 scripts/train_poc.py \
     --learning_rate 2e-4 \
     --warmup_steps 50 \
     --max_seq_length 2048 \
-    --seed 42 \
-    --use_wandb  # 如需 wandb 日志，取消注释
+    --seed 42
 
 echo ""
 echo "=========================================="

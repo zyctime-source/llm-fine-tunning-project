@@ -29,6 +29,13 @@ import logging
 from pathlib import Path
 from typing import Optional
 
+# 加载 .env 文件（如果在 AutoDL 等环境运行）
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 import torch
 from transformers import (
     AutoTokenizer,
