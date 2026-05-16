@@ -1,0 +1,63 @@
+{
+  "schema_version": "experiment-meta-v0",
+  "experiment_id": "s1-poc-e01",
+  "experiment_kind": "training",
+  "stage": "poc",
+  "status": "ready",
+  "created_at": "2026-05-17",
+  "updated_at": "2026-05-17",
+  "setup_note": "D1 已完成。D2 需要在 AutoDL 上执行训练脚本。"
+  "parent_experiment": "baseline-gemma4e2b-it-layer2-v0",
+  "base_model": {
+    "repo_id": "google/gemma-4-2b-it",
+    "revision": "main",
+    "dtype": "bfloat16"
+  },
+  "training": {
+    "method": "LoRA",
+    "rank": 8,
+    "lora_alpha": 16,
+    "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj"],
+    "learning_rate": 0.0002,
+    "epochs": 1,
+    "batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "warmup_steps": 50,
+    "seed": 42,
+    "notes": "PoC 保守配置，验证训练链路可跑通"
+  },
+  "data_recipe": {
+    "spec_doc": "_docs/execution/s1-data-v1.0-spec_CN.md",
+    "recipe_id": "v1.0-poc",
+    "data_mix": {
+      "brainstorm_en": 400,
+      "brainstorm_cn": 400,
+      "general": 200,
+      "total": 1000
+    },
+    "train_manifest_or_path": "data/poc_v1.0_1k.jsonl"
+  },
+  "evaluation": {
+    "manifest_version": "layer2-v0",
+    "manifest_path": "data/eval/layer2/manifest_v0.jsonl",
+    "eval_protocol_id": "eval-protocol-v0",
+    "eval_protocol_doc": "_docs/execution/s1-baseline-report_CN.md",
+    "judge_model": "qwen3.6-plus"
+  },
+  "results": {
+    "artifacts_dir": "experiment/s1-poc-e01/",
+    "raw_outputs_dir": "experiment/s1-poc-e01/results/",
+    "metrics_path": null
+  },
+  "baseline_scores": {
+    "source": "baseline-gemma4e2b-it-layer2-v0",
+    "overall": 85.67,
+    "by_subset": {
+      "core": 93.35,
+      "general": 81.85,
+      "zh_guard": 77.94
+    }
+  },
+  "result_scores": null,
+  "decision": null
+}

@@ -1,0 +1,29 @@
+# Sprint 1 Week 2 PoC 训练环境 (AutoDL / GPU)
+# RTX 5090 需要 CUDA 12.x，使用 PyTorch 2.6.0+ with CUDA 12.4
+
+# 核心训练框架
+torch>=2.6.0
+torchvision>=0.21.0
+transformers>=4.49.0
+accelerate>=1.0.0
+datasets>=3.0.0
+
+# LoRA / PEFT 微调
+peft>=0.14.0
+trl>=0.15.0
+
+# 辅助依赖
+safetensors>=0.4.0
+numpy>=1.26,<2
+scipy>=1.10.0
+
+# 日志与监控
+wandb>=0.19.0
+python-dotenv>=1.0.0
+
+# 评估相关 (复用 eval 环境的部分依赖)
+tqdm>=4.65.0
+pandas>=2.0.0
+
+# 可选：如果使用 bitsandbytes 量化
+# bitsandbytes>=0.45.0
