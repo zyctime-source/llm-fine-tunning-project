@@ -135,7 +135,7 @@ GPU: NVIDIA GeForce RTX 5090
 python3 scripts/train_poc.py \
     --data_path data/poc_v1.0_1k.jsonl \
     --output_dir experiment/s1-poc-e01 \
-    --model_name google/gemma-4-2b-it \
+    --model_name google/gemma-4-E2B-it \
     --load_in_4bit \
     --num_epochs 1 \
     --batch_size 1 \

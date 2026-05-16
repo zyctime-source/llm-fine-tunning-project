@@ -1,3 +1,8 @@
+venv-train
+
+# ModelScope / 本地基座模型缓存（体积大，各环境自行下载）
+model_cache/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

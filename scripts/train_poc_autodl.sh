@@ -68,6 +68,8 @@ pip install --upgrade pip
 echo ""
 echo "安装训练依赖..."
 pip install -r requirements-train.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+# 4-bit 量化依赖（requirements-train.txt 已包含，此处确保已装）
+pip show bitsandbytes >/dev/null 2>&1 || pip install bitsandbytes -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 验证安装
 echo ""
@@ -98,6 +100,26 @@ if [ ! -f "data/poc_v1.0_1k.jsonl" ]; then
 fi
 echo "✓ 数据文件已准备好"
 
+# 模型：优先使用 ModelScope 已下载的本地路径（国内快）
+MODEL_ID="google/gemma-4-E2B-it"
+MODEL_CACHE_DIR="${MODEL_CACHE_DIR:-model_cache}"
+LOCAL_MODEL_PATH="$MODEL_CACHE_DIR/google/gemma-4-E2B-it"
+
+if [ -f "$LOCAL_MODEL_PATH/config.json" ]; then
+    MODEL_NAME="$LOCAL_MODEL_PATH"
+    echo ""
+    echo "✓ 使用本地模型: $MODEL_NAME"
+else
+    MODEL_NAME="$MODEL_ID"
+    echo ""
+    echo "本地模型未找到 ($LOCAL_MODEL_PATH)"
+    echo "建议先 Ctrl+C 停掉慢速 HF 下载，再执行:"
+    echo "  pip install modelscope -i https://pypi.tuna.tsinghua.edu.cn/simple"
+    echo "  python scripts/download_model_modelscope.py"
+    echo ""
+    read -t 10 -p "10 秒内按 Enter 继续从 Hub 下载，或 Ctrl+C 改用 ModelScope ..." || true
+fi
+
 # 创建输出目录
 mkdir -p experiment/s1-poc-e01/results
 
@@ -112,7 +134,7 @@ echo "启动训练..."
 python3 scripts/train_poc.py \
     --data_path data/poc_v1.0_1k.jsonl \
     --output_dir experiment/s1-poc-e01 \
-    --model_name google/gemma-4-2b-it \
+    --model_name "$MODEL_NAME" \
     --load_in_4bit \
     --lora_r 8 \
     --lora_alpha 16 \

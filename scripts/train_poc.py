@@ -38,13 +38,13 @@ except ImportError:
 
 import torch
 from transformers import (
+    AutoConfig,
     AutoTokenizer,
     AutoModelForCausalLM,
-    TrainingArguments,
-    DataCollatorForSeq2Seq,
+    BitsAndBytesConfig,
 )
 from datasets import Dataset
-from peft import LoraConfig, get_peft_model, TaskType, PeftModel
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 from trl import SFTTrainer, SFTConfig
 
 # 配置日志
@@ -57,6 +57,10 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Gemma4 多模态：vision/audio 的 q_proj 等为 Gemma4ClippableLinear，PEFT 不支持；
+# 仅对 language_model 内的 Linear/Linear4bit 注入 LoRA（与 peft 0.19+ 默认一致，可含 k/o）
+GEMMA4_LORA_TARGET = r".*language_model\..*\.(q_proj|v_proj|k_proj|o_proj)"
 
 
 def load_poc_data(data_path: str, max_samples: Optional[int] = None) -> Dataset:
@@ -90,7 +94,7 @@ def load_poc_data(data_path: str, max_samples: Optional[int] = None) -> Dataset:
 
 
 def setup_model_and_tokenizer(
-    model_name: str = "google/gemma-4-2b-it",
+    model_name: str = "google/gemma-4-E2B-it",
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
 ):
@@ -103,16 +107,24 @@ def setup_model_and_tokenizer(
         tokenizer.pad_token = tokenizer.eos_token
     
     # 加载模型
-    model_kwargs = {
-        "torch_dtype": torch.bfloat16,
-        "device_map": "auto",
-    }
-    
+    model_kwargs: dict = {"device_map": "auto"}
+
+    if load_in_4bit and load_in_8bit:
+        raise ValueError("不能同时启用 --load_in_4bit 与 --load_in_8bit")
     if load_in_4bit:
-        model_kwargs["load_in_4bit"] = True
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+        )
+        logger.info("使用 4-bit 量化 (BitsAndBytesConfig)")
     elif load_in_8bit:
-        model_kwargs["load_in_8bit"] = True
-    
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+        logger.info("使用 8-bit 量化 (BitsAndBytesConfig)")
+    else:
+        model_kwargs["dtype"] = torch.bfloat16
+
     model = AutoModelForCausalLM.from_pretrained(model_name, **model_kwargs)
     
     logger.info(f"模型加载完成: {model_name}")
@@ -124,24 +136,29 @@ def setup_model_and_tokenizer(
 def setup_lora_config(
     r: int = 8,
     lora_alpha: int = 16,
-    target_modules: Optional[list] = None,
+    target_modules: Optional[list | str] = None,
     lora_dropout: float = 0.05,
+    model_type: Optional[str] = None,
 ):
-    """配置 LoRA"""
+    """配置 LoRA。Gemma4 须限定 language_model，避免匹配 vision/audio 的 ClippableLinear。"""
     if target_modules is None:
-        # Gemma 模型的注意力模块
-        target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
-    
-    lora_config = LoraConfig(
+        if model_type == "gemma4":
+            target_modules = GEMMA4_LORA_TARGET
+        # 其他架构：不传 target_modules，由 PEFT 按 model_type 自动推断
+
+    lora_kwargs = dict(
         r=r,
         lora_alpha=lora_alpha,
-        target_modules=target_modules,
         lora_dropout=lora_dropout,
         bias="none",
         task_type=TaskType.CAUSAL_LM,
     )
-    
-    logger.info(f"LoRA 配置: r={r}, alpha={lora_alpha}, target={target_modules}")
+    if target_modules is not None:
+        lora_kwargs["target_modules"] = target_modules
+
+    lora_config = LoraConfig(**lora_kwargs)
+
+    logger.info(f"LoRA 配置: r={r}, alpha={lora_alpha}, target={target_modules or 'auto'}")
     return lora_config
 
 
@@ -172,7 +189,7 @@ def main():
                        help="最大使用样本数（用于快速测试）")
     
     # 模型参数
-    parser.add_argument("--model_name", type=str, default="google/gemma-4-2b-it",
+    parser.add_argument("--model_name", type=str, default="google/gemma-4-E2B-it",
                        help="基座模型名称")
     parser.add_argument("--load_in_4bit", action="store_true",
                        help="使用 4-bit 量化（节省显存）")
@@ -222,6 +239,8 @@ def main():
     
     # 加载数据
     dataset = load_poc_data(args.data_path, max_samples=args.max_samples)
+
+    model_config = AutoConfig.from_pretrained(args.model_name)
     
     # 加载模型和 tokenizer
     model, tokenizer = setup_model_and_tokenizer(
@@ -229,12 +248,16 @@ def main():
         load_in_4bit=args.load_in_4bit,
         load_in_8bit=args.load_in_8bit,
     )
+
+    if args.load_in_4bit or args.load_in_8bit:
+        model = prepare_model_for_kbit_training(model)
     
     # 设置 LoRA
     lora_config = setup_lora_config(
         r=args.lora_r,
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
+        model_type=getattr(model_config, "model_type", None),
     )
     
     # 应用 LoRA 到模型
@@ -252,9 +275,9 @@ def main():
         logging_steps=10,
         save_steps=100,
         save_total_limit=2,
-        max_seq_length=args.max_seq_length,
+        max_length=args.max_seq_length,
         seed=args.seed,
-        report_to="wandb" if args.use_wandb else None,
+        report_to="wandb" if args.use_wandb else [],
         run_name=f"s1-poc-e01-r{args.lora_r}-lr{args.learning_rate}",
         # 优化器设置
         optim="adamw_torch",
@@ -274,7 +297,7 @@ def main():
     # 创建训练器
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=dataset,
         args=training_args,
         formatting_func=formatting_func,

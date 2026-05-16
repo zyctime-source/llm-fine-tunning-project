@@ -9,7 +9,7 @@
   "setup_note": "D1 已完成。D2 需要在 AutoDL 上执行训练脚本。"
   "parent_experiment": "baseline-gemma4e2b-it-layer2-v0",
   "base_model": {
-    "repo_id": "google/gemma-4-2b-it",
+    "repo_id": "google/gemma-4-E2B-it",
     "revision": "main",
     "dtype": "bfloat16"
   },

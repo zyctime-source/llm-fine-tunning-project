@@ -1,0 +1,22 @@
+{
+  "experiment_id": "s1-poc-e01",
+  "model_name": "./model_cache/google/gemma-4-E2B-it",
+  "lora_config": {
+    "r": 8,
+    "alpha": 16,
+    "dropout": 0.05
+  },
+  "training_args": {
+    "num_epochs": 1,
+    "batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "learning_rate": 0.0002,
+    "warmup_steps": 50,
+    "seed": 42
+  },
+  "train_result": {
+    "final_loss": 1.934285053253174,
+    "train_runtime": 385.2796
+  },
+  "output_dir": "experiment/s1-poc-e01"
+}
