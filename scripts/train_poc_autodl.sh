@@ -28,8 +28,13 @@ if [ -f ".env" ]; then
     if [ -n "$HF_ENDPOINT" ]; then
         echo "  HF_ENDPOINT: $HF_ENDPOINT"
     fi
+    if [ -n "$USE_MODELSCOPE" ]; then
+        echo "  USE_MODELSCOPE: $USE_MODELSCOPE (将使用魔搭下载)"
+    fi
 else
-    echo "⚠️ 警告: 未找到 .env 文件，可能需要手动设置 HF_TOKEN"
+    echo "⚠️ 警告: 未找到 .env 文件，可能需要手动设置环境变量"
+    echo "  选项 1: export USE_MODELSCOPE=1 (使用 ModelScope 魔搭)"
+    echo "  选项 2: export HF_TOKEN=your_token (使用 Hugging Face)"
 fi
 
 # 检查 GPU
@@ -106,7 +111,7 @@ echo "=========================================="
 echo "开始训练"
 echo "=========================================="
 
-# 运行训练（使用 4-bit 量化节省显存，5090 24GB 应该足够）
+# 运行训练（使用 4-bit 量化节省显存，5090 32GB 足够）
 echo ""
 echo "启动训练..."
 python3 scripts/train_poc.py \

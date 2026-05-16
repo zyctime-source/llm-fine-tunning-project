@@ -94,8 +94,34 @@ def setup_model_and_tokenizer(
     load_in_4bit: bool = False,
     load_in_8bit: bool = False,
 ):
-    """加载基座模型和 tokenizer"""
-    logger.info(f"加载基座模型: {model_name}")
+    """加载基座模型和 tokenizer（支持 ModelScope）"""
+    
+    # 检查是否使用 ModelScope
+    use_modelscope = os.environ.get("USE_MODELSCOPE", "").lower() in ("1", "true", "yes")
+    
+    if use_modelscope:
+        logger.info("使用 ModelScope（魔搭）下载模型")
+        try:
+            from modelscope import AutoModelForCausalLM as MSAutoModel, AutoTokenizer as MSAutoTokenizer
+            logger.info(f"从 ModelScope 加载: {model_name}")
+            # ModelScope 自动映射 HF 模型名
+            tokenizer = MSAutoTokenizer.from_pretrained(model_name)
+            model_kwargs = {
+                "torch_dtype": torch.bfloat16,
+                "device_map": "auto",
+            }
+            if load_in_4bit:
+                model_kwargs["load_in_4bit"] = True
+            elif load_in_8bit:
+                model_kwargs["load_in_8bit"] = True
+            model = MSAutoModel.from_pretrained(model_name, **model_kwargs)
+            logger.info(f"ModelScope 模型加载完成: {model_name}")
+            return model, tokenizer
+        except Exception as e:
+            logger.warning(f"ModelScope 加载失败: {e}，回退到 Hugging Face")
+    
+    # 使用 Hugging Face 加载
+    logger.info(f"从 Hugging Face 加载: {model_name}")
     
     # 加载 tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)

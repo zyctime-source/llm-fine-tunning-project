@@ -13,33 +13,31 @@
 登录 [AutoDL](https://www.autodl.com/) 控制台：
 
 1. 选择 **"算法镜像"** 或 **"基础镜像"**
-   - **推荐**：`PyTorch 2.6.0 + Python 3.11 + CUDA 12.4`
+   - **推荐**：`PyTorch 2.7.0 + Python 3.11 + CUDA 12.4`
    - 或者选择 `PyTorch` 类别下的最新版本
 
 2. **GPU 选择**：
-   - RTX 5090 (24GB) - 推荐用于本实验
+   - RTX 5090 (32GB) - 推荐用于本实验
    - RTX 4090 (24GB) - 备选
    - A100 (40GB/80GB) - 预算充足时
 
 ### 1.2 开机后检查环境
 
 ```bash
-# SSH 登录实例
-ssh -p <端口> root@<主机地址>
-
 # 检查 GPU
 nvidia-smi
 
-# 预期输出示例：
+# 预期输出示例（AutoDL RTX 5090）：
 # +-----------------------------------------------------------------------------------------+
-# | NVIDIA-SMI 550.XX                 Driver Version: 550.XX     CUDA Version: 12.4          |
-# |-----------------------------------------+------------------------+----------------------+
+# | NVIDIA-SMI 580.105.08             Driver Version: 580.105.08     CUDA Version: 13.0     |
+# +-----------------------------------------+------------------------+----------------------+
 # | GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
 # | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
 # |                                         |                        |               MIG M. |
 # |=========================================+========================+======================|
-# |   0  NVIDIA GeForce RTX 5090          Off |   00000000:01:00.0 Off |                  N/A |
-# |  0%   30C    P8             20W /  450W |      1MiB /  24576MiB |      0%      Default |
+# |   0  NVIDIA GeForce RTX 5090        On  |   00000000:A8:00.0 Off |                  N/A |
+# | 41%   31C    P8             17W /  575W |       0MiB /  32607MiB |      0%      Default |
+# |                                         |                        |                  N/A |
 # +-----------------------------------------+------------------------+----------------------+
 ```
 
@@ -49,19 +47,8 @@ nvidia-smi
 
 ### 2.1 上传代码到 AutoDL
 
-**方法一：使用 AutoDL 文件存储（推荐）**
-
-```bash
-# 在本地，使用 AutoDL 提供的 scp 命令上传
-scp -P <端口> -r /path/to/llm-fine-tunning-project root@<主机>:/root/autodl-tmp/
-```
-
-**方法二：使用 GitHub**
-
 ```bash
 # 在 AutoDL 实例内
-ssh -p <端口> root@<主机>
-cd /root/autodl-tmp
 git clone https://github.com/zyctime-source/llm-fine-tunning-project.git
 cd llm-fine-tunning-project
 ```
@@ -72,15 +59,141 @@ cd llm-fine-tunning-project
 # 进入项目目录
 cd /root/autodl-tmp/llm-fine-tunning-project
 
+# 如果使用 ModelScope（推荐国内环境）
+export USE_MODELSCOPE=1
+
 # 运行自动启动脚本
 bash scripts/train_poc_autodl.sh
 ```
 
 脚本会自动：
-1. 创建虚拟环境
-2. 安装依赖
-3. 验证 GPU
-4. 开始训练
+1. 加载 `.env` 环境变量（HF_TOKEN、USE_MODELSCOPE 等）
+2. 验证 GPU 可用性
+3. 创建/激活 Python 虚拟环境
+4. 安装训练依赖（PyTorch、Transformers、TRL、PEFT、ModelScope）
+5. 验证安装
+6. 检查数据文件
+7. 启动训练
+
+#### `train_poc_autodl.sh` 脚本详解
+
+| 阶段 | 功能 | 说明 |
+|------|------|------|
+| **环境检查** | 检查目录、加载 `.env` | 确保在项目根目录，加载 HF_TOKEN 或 USE_MODELSCOPE |
+| **GPU 验证** | `nvidia-smi` | 显示 GPU 型号、驱动版本、CUDA 版本、显存 |
+| **虚拟环境** | `python3 -m venv venv-train` | 创建隔离环境，避免污染系统 Python |
+| **依赖安装** | `pip install -r requirements-train.txt` | 从清华镜像安装，加速下载 |
+| **安装验证** | 导入 torch、transformers 等 | 确认 GPU 可用、版本正确 |
+| **数据检查** | 检查 `data/poc_v1.0_1k.jsonl` | 确保 PoC 数据已准备 |
+| **训练启动** | 运行 `train_poc.py` | 使用 4-bit 量化、LoRA rank=8、epoch=1 |
+
+**脚本特点：**
+- ✅ **幂等性**：多次运行不会重复创建环境
+- ✅ **错误处理**：使用 `set -e`，出错立即退出
+- ✅ **国内加速**：使用清华 PyPI 镜像
+- ✅ **自动适配**：支持 HF_TOKEN 或 USE_MODELSCOPE 两种认证方式
+
+---
+
+### 2.3 脚本执行流程详解
+
+当你运行 `bash scripts/train_poc_autodl.sh` 时，实际发生了什么：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. 初始化                                                   │
+│     ├── 显示欢迎信息                                          │
+│     ├── 检查是否在正确目录 (存在 requirements-train.txt)      │
+│     └── 加载 .env 文件中的环境变量                             │
+│         ├── HF_TOKEN (Hugging Face 认证)                     │
+│         ├── HF_ENDPOINT (镜像地址)                           │
+│         └── USE_MODELSCOPE (使用魔搭下载)                     │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  2. GPU 环境检查                                              │
+│     ├── 检查 nvidia-smi 可用                                  │
+│     └── 显示 GPU 信息：                                        │
+│         ├── GPU 型号 (如 RTX 5090)                           │
+│         ├── 驱动版本 (如 580.105.08)                         │
+│         ├── CUDA 版本 (如 13.0)                              │
+│         └── 显存容量 (如 32607MiB / 32GB)                    │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  3. Python 虚拟环境                                           │
+│     ├── 检查 venv-train 目录是否存在                           │
+│     │   ├── 不存在 → 创建: python3 -m venv venv-train        │
+│     │   └── 存在 → 复用现有环境                               │
+│     └── 激活虚拟环境: source venv-train/bin/activate          │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  4. 安装依赖                                                  │
+│     ├── 升级 pip: pip install --upgrade pip                   │
+│     └── 安装 requirements-train.txt 中的包：                 │
+│         ├── torch>=2.6.0 (PyTorch)                           │
+│         ├── transformers>=4.49.0 (模型加载)                   │
+│         ├── peft>=0.14.0 (LoRA)                             │
+│         ├── trl>=0.15.0 (SFTTrainer)                        │
+│         └── modelscope>=1.20.0 (国内下载)                    │
+│     使用清华镜像: -i https://pypi.tuna.tsinghua.edu.cn/simple │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  5. 验证安装                                                  │
+│     ├── import torch → 检查 CUDA 可用                        │
+│     ├── import transformers                                  │
+│     ├── import peft                                          │
+│     └── import trl                                           │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  6. 数据检查                                                  │
+│     └── 检查 data/poc_v1.0_1k.jsonl 是否存在                  │
+│         └── 不存在 → 报错退出                                 │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  7. 启动训练                                                  │
+│     └── python3 scripts/train_poc.py                         │
+│         ├── 参数 --data_path data/poc_v1.0_1k.jsonl          │
+│         ├── 参数 --model_name google/gemma-4-2b-it         │
+│         ├── 参数 --load_in_4bit (4-bit 量化)                 │
+│         ├── 参数 --lora_r 8 --lora_alpha 16                  │
+│         ├── 参数 --num_epochs 1                              │
+│         └── 参数 --batch_size 1                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**预期输出：**
+
+```bash
+==========================================
+Sprint 1 Week 2 PoC 训练 - AutoDL
+==========================================
+
+加载环境变量 (.env)...
+✓ 环境变量已加载
+  USE_MODELSCOPE: 1 (将使用魔搭下载)
+
+GPU 信息:
+NVIDIA GeForce RTX 5090, 580.105.08, 32607 MiB
+
+激活虚拟环境...
+安装训练依赖...
+... (安装过程)
+
+✓ 数据文件已准备好
+
+==========================================
+开始训练
+==========================================
+2026-05-16 22:XX:XX,XXX - INFO - 加载数据: data/poc_v1.0_1k.jsonl
+2026-05-16 22:XX:XX,XXX - INFO - 加载了 1000 条样本
+2026-05-16 22:XX:XX,XXX - INFO - 从 ModelScope 加载: google/gemma-4-2b-it
+... (训练过程)
+```
 
 ---
 
@@ -130,6 +243,25 @@ GPU: NVIDIA GeForce RTX 5090
 
 ### 3.4 运行训练
 
+**使用 ModelScope（推荐，国内更快）：**
+
+```bash
+# 设置使用 ModelScope
+export USE_MODELSCOPE=1
+
+# 运行训练
+python3 scripts/train_poc.py \
+    --data_path data/poc_v1.0_1k.jsonl \
+    --output_dir experiment/s1-poc-e01 \
+    --model_name google/gemma-4-2b-it \
+    --load_in_4bit \
+    --num_epochs 1 \
+    --batch_size 1 \
+    --learning_rate 2e-4
+```
+
+**使用 Hugging Face（需要 Token）：**
+
 ```bash
 # 基础训练（4-bit 量化，节省显存）
 python3 scripts/train_poc.py \
@@ -150,7 +282,8 @@ python3 scripts/train_poc.py \
 
 | GPU 显存 | 推荐配置 | 命令 |
 |---------|---------|------|
-| 24GB (5090/4090) | 4-bit 量化, rank=8 | `--load_in_4bit --lora_r 8` |
+| 24GB (4090) | 4-bit 量化, rank=8 | `--load_in_4bit --lora_r 8` |
+| 32GB (5090) | 4-bit 量化或 bf16, rank=8-16 | `--load_in_4bit --lora_r 8` 或 `--lora_r 16` |
 | 40GB (A100) | 4-bit 量化, rank=16 | `--load_in_4bit --lora_r 16` |
 | 80GB (A100/H100) | bf16 全精度, rank=16 | `--lora_r 16` |
 
@@ -180,7 +313,22 @@ python3 scripts/train_poc.py --load_in_4bit --batch_size 1 --max_seq_length 1024
 
 ### Q2: 下载模型很慢/失败
 
-**解决**：设置 HF 镜像
+**解决**：使用 ModelScope（魔搭）或 HF 镜像
+
+**方法 1：使用 ModelScope（推荐，国内更快）**
+
+```bash
+# 安装 modelscope
+pip install modelscope
+
+# 设置环境变量使用 modelscope
+export USE_MODELSCOPE=1
+
+# 训练脚本会自动使用 modelscope 下载
+python3 scripts/train_poc.py ...
+```
+
+**方法 2：使用 HF 镜像**
 
 ```bash
 # 设置环境变量
@@ -241,9 +389,10 @@ scp -P <端口> -r root@<主机>:/root/autodl-tmp/llm-fine-tunning-project/exper
 
 ### AutoDL RTX 5090 价格参考（2026-05）
 
-| 配置 | 价格/小时 | 预估训练时间 | 预估成本 |
-|------|----------|-------------|---------|
-| RTX 5090 (24GB) | ~2-3元 | 30-60分钟 | 1-3元 |
+| 配置 | 显存 | 价格/小时 | 预估训练时间 | 预估成本 |
+|------|------|----------|-------------|---------|
+| RTX 5090 (32GB) | 32GB | ~2-3元 | 30-60分钟 | 1-3元 |
+| RTX 4090 (24GB) | 24GB | ~1.5-2元 | 30-60分钟 | 1-2元 |
 
 > 实际成本取决于训练参数（epochs、量化方式等）
 

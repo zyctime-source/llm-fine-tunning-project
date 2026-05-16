@@ -63,14 +63,16 @@
 - [x] 编写 AutoDL 环境设置文档
 - [ ] 安装/验证训练环境（在 AutoDL 上执行）
 
-### Day 2：训练
-- [ ] 执行 PoC 训练
-- [ ] 监控 loss 曲线
-- [ ] 保存 LoRA 权重
+### Day 2：训练（已完成 ✓）
+- [x] 执行 PoC 训练
+- [x] 监控 loss 曲线（最终 loss: 1.9343）
+- [x] 保存 LoRA 权重
+- [x] 训练时间: 385.28 秒 (~6.4 分钟) @ AutoDL RTX 5090
 
-### Day 3：验证
+### Day 3：验证（进行中）
+- [ ] 下载 LoRA 权重到本地
 - [ ] 验证 LoRA 权重可加载
-- [ ] 跑 Layer 2 冒烟测试
+- [ ] 跑 Layer 2 冒烟测试（前 10 条）
 
 ### Day 4：评估
 - [ ] 执行 Layer 2 全量推理（500 条）
@@ -91,16 +93,16 @@
 - [ ] 验证 GPU 可用: `nvidia-smi`
 - [ ] 验证依赖安装: `python -c "import torch; print(torch.cuda.is_available())"`
 
-### 训练执行
-- [ ] 准备训练脚本或命令
-- [ ] 启动训练，记录日志
-- [ ] 监控显存占用
-- [ ] 保存最终 LoRA 权重
+### 训练执行（已完成）
+- [x] 准备训练脚本或命令
+- [x] 启动训练，记录日志
+- [x] 监控显存占用
+- [x] 保存最终 LoRA 权重
 
-### 评估执行
-- [ ] 使用微调后模型跑 Layer 2 推理
-- [ ] 执行评委打分
-- [ ] 生成分层统计报告
+### 评估执行（计划中）
+- [ ] 使用微调后模型跑 Layer 2 推理（D4 执行）
+- [ ] 执行评委打分（D4 执行）
+- [ ] 生成分层统计报告（D4 执行）
 
 ## 预期结果
 
@@ -126,10 +128,10 @@
 |------|------|------|
 | 训练数据 | `data/poc_v1.0_1k.jsonl` | ✅ 已准备 |
 | 元数据 | `data/poc_v1.0_1k_meta.json` | ✅ 已准备 |
-| LoRA 配置 | `adapter_config.json` | ⏳ 待生成 |
-| LoRA 权重 | `adapter_model.safetensors` | ⏳ 待生成 |
-| 训练日志 | `training/trainer_state.json` | ⏳ 待生成 |
-| 评估结果 | `results/` | ⏳ 待生成 |
+| LoRA 配置 | `adapter_config.json` | ✅ 已生成 (AutoDL) |
+| LoRA 权重 | `adapter_model.safetensors` | ✅ 已生成 (AutoDL) |
+| 训练日志 | `training.log` | ✅ 已生成 (AutoDL) |
+| 评估结果 | `results/` | ⏳ D4 执行 |
 
 ## 参考文档
 
