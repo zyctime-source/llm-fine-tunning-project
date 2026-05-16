@@ -3,10 +3,10 @@
   "experiment_id": "s1-poc-e01",
   "experiment_kind": "training",
   "stage": "poc",
-  "status": "ready",
+  "status": "training_completed",
   "created_at": "2026-05-17",
   "updated_at": "2026-05-17",
-  "setup_note": "D1 已完成。D2 需要在 AutoDL 上执行训练脚本。"
+  "training_note": "D1-D2 已完成。训练成功：loss=1.9343, time=385s @ AutoDL RTX 5090",
   "parent_experiment": "baseline-gemma4e2b-it-layer2-v0",
   "base_model": {
     "repo_id": "google/gemma-4-E2B-it",
@@ -57,6 +57,13 @@
       "general": 81.85,
       "zh_guard": 77.94
     }
+  },
+  "training_result": {
+    "final_loss": 1.9343,
+    "train_runtime_seconds": 385.28,
+    "train_runtime_formatted": "6m 25s",
+    "completed_at": "2026-05-16T23:11:16",
+    "status": "success"
   },
   "result_scores": null,
   "decision": null
