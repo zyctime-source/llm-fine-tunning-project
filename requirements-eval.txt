@@ -12,3 +12,6 @@ accelerate>=0.30.0
 safetensors>=0.4.0
 numpy>=1.26,<2
 python-dotenv>=1.0.0
+# Layer 2 LLM-as-a-Judge (DashScope OpenAI-compatible); see scripts/layer2_judge_scores.py
+openai>=1.40.0
+tenacity>=8.2.0

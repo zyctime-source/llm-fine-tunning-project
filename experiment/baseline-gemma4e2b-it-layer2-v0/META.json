@@ -3,9 +3,9 @@
   "experiment_id": "baseline-gemma4e2b-it-layer2-v0",
   "experiment_kind": "eval_only",
   "stage": "baseline",
-  "status": "draft",
+  "status": "completed",
   "created_at": "2026-05-12",
-  "updated_at": "2026-05-14",
+  "updated_at": "2026-05-17",
   "parent_experiment": null,
   "base_model": {
     "repo_id": "google/gemma-4-E2B-it",
@@ -30,15 +30,37 @@
   "results": {
     "artifacts_dir": null,
     "raw_outputs_dir": "experiment/baseline-gemma4e2b-it-layer2-v0/results",
-    "metrics_path": null,
+    "metrics_path": "experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl",
+    "layer2_infer_jsonl": "experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl",
+    "judge_summary_json": "experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_summary.json",
     "smoke_infer_jsonl": "experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260513T1556Z.jsonl",
     "smoke_infer_profile": {
       "items": 3,
       "max_new_tokens": 128,
       "script": "scripts/layer2_smoke_infer.py"
+    },
+    "layer2_infer_profile": {
+      "items": 500,
+      "max_new_tokens": 2048,
+      "script": "scripts/layer2_smoke_infer.py"
     }
   },
   "baseline_scores": null,
-  "result_scores": null,
+  "result_scores": {
+    "judge_summary_schema": "layer2-judge-summary-v0",
+    "judge_summary_file": "experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_summary.json",
+    "judge_model": "qwen3.6-plus",
+    "counts": {
+      "rows_after_dedupe": 500,
+      "judge_parse_ok": 500,
+      "judge_parse_fail": 0
+    },
+    "by_stratum_overall_mean": {
+      "core": 93.35,
+      "general": 81.85,
+      "zh_guard": 77.94
+    },
+    "all_parse_ok_overall_mean": 85.668
+  },
   "decision": null
 }

@@ -13,6 +13,7 @@ we strip trailing assistant messages so the model is not conditioned on the gold
 Features:
   - Streaming output: writes each result to JSONL immediately (safe for interruption)
   - Resume support: --resume to skip already processed layer2_ids
+  - Each line includes completion_text (full decode) and completion_preview (first 2000 chars) for downstream judges
 
 Usage:
   python scripts/layer2_smoke_infer.py --dry-run
@@ -188,6 +189,7 @@ def run_inference_streaming(
                 "stratum": rec.get("stratum"),
                 "prompt_message_count": len(msgs_in),
                 "max_new_tokens": max_new_tokens,
+                "completion_text": text,
                 "completion_preview": text[:2000],
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }

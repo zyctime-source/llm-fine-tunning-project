@@ -9,7 +9,7 @@
 |------|------|
 | 基线报告（主叙事与 §4 协议） | [_docs/execution/s1-baseline-report_CN.md](../../_docs/execution/s1-baseline-report_CN.md) |
 | Layer 2 manifest 说明 | [_docs/eval/layer2/README.md](../../_docs/eval/layer2/README.md) |
-| Sprint 备忘：基线 Gemma + Layer 2 推理 | [_docs/sprints/Sprint1-baseline-gemma-layer2-infer_CN.md](../../_docs/sprints/Sprint1-baseline-gemma-layer2-infer_CN.md) |
+| Sprint 备忘：基线 Gemma + Layer 2 推理 | [_docs/sprints/Sprint1-03_baseline-gemma-layer2-infer_CN.md](../../_docs/sprints/Sprint1-03_baseline-gemma-layer2-infer_CN.md) |
 
 | 路径 | 用途 |
 |------|------|
@@ -55,10 +55,51 @@ pip install -r requirements-eval.txt
 | `results.raw_outputs_dir` | `experiment/baseline-gemma4e2b-it-layer2-v0/results` |
 | `results.smoke_infer_jsonl` | `experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260513T1556Z.jsonl` |
 
+### 全量 Layer 2 基线（500 条 + 评委，相对仓库根）
+
+| 字段（`META.json`） | 路径 |
+|---------------------|------|
+| `results.layer2_infer_jsonl` | `experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl` |
+| `results.metrics_path` | `experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl` |
+| `results.judge_summary_json` | `experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_summary.json` |
+
+摘要指标见 **`META.json` → `result_scores`**（与 `layer2_judge_summary.json` 一致）；详细维度均值/中位数以汇总文件为准。
+
+## 评委打分（可选，`eval-protocol-v0` §4.1）
+
+在 **Gemma 推理 JSONL** 就绪后（可与全量 500 条并行准备环境），使用 DashScope **OpenAI 兼容**接口调用 **`qwen3.6-plus`** 打分：
+
+```bash
+pip install -r requirements-eval.txt   # 含 openai、tenacity
+# .env：DASHSCOPE_API_KEY、DASHSCOPE_OPENAI_BASE_URL（与翻译流水线一致）
+
+python scripts/layer2_judge_scores.py --manifest data/eval/layer2/manifest_v0.jsonl --infer-jsonl experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl --out experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl
+
+python scripts/layer2_judge_scores.py --manifest data/eval/layer2/manifest_v0.jsonl --infer-jsonl experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl --out experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl --resume
+
+python scripts/layer2_judge_scores.py --manifest data/eval/layer2/manifest_v0.jsonl --infer-jsonl experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl --out experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl --limit 10
+```
+
+将 **`results` 下评委 JSONL 路径**记入 `META.json`（可沿用 `metrics_path` 或扩展字段），并在 [s1-baseline-report_CN.md](../../_docs/execution/s1-baseline-report_CN.md) §7 填写。
+
+详见 [experiment/README.md](../README.md)「Layer 2 评委打分」与 [scripts/layer2_judge_scores.py](../../scripts/layer2_judge_scores.py) 顶部说明。
+
+### 评委结果汇总（生成 `result_scores` 摘要）
+
+评委 JSONL 跑完后，用 [scripts/aggregate_layer2_judge_scores.py](../../scripts/aggregate_layer2_judge_scores.py) 计算分层均值/中位数、解析成功条数等，便于填入 **`META.json` → `result_scores`**（详细表仍写在 `s1-baseline-report` 或自行分析）。
+
+```bash
+python scripts/aggregate_layer2_judge_scores.py --judge-jsonl experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl --out experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_summary.json
+```
+
+- **`--out`**：写入完整摘要 JSON（含 `by_stratum`、`all_parse_ok` 各维度 `mean` / `median`）。  
+- **标准错误输出**：附一段可直接合并进 `META.json` 的 **`result_scores`** 占位结构（含 `judge_summary_file`、各层 `overall` 均值等）。  
+- 默认对同一 **`layer2_id` 保留最后一行**（若曾重跑评委）；需要保留所有行时用 **`--no-dedupe`**。
+
 ## 待办（跑基线时勾选）
 
 - [x] 冻结 `base_model.revision`（Hub commit：`b324173c7d5721c2baba7f3b17b3b9b3d34ab1e9`）
-- [x] 环境冒烟：已跑通 `layer2_smoke_infer.py`（3 条，`max_new_tokens=128`），路径见 `META.json` → `results`
-- [ ] 跑满 500 条 Layer 2 推理
-- [ ] （可选）评委打分
-- [ ] 将 `META.json` 的 `status` 改为 `completed`，并与 `s1-baseline-report` 定稿同步
+- [x] 环境冒烟：已跑通 `layer2_smoke_infer.py`（3 条，`max_new_tokens=128`），路径见 `META.json` → `results.smoke_infer_*`
+- [x] 跑满 500 条 Layer 2 推理（`max_new_tokens=2048`，贪心；见 `META.json` → `results.layer2_infer_*`）
+- [x] 评委打分：`layer2_judge_scores.jsonl` + 汇总 `layer2_judge_summary.json`（`qwen3.6-plus`）
+- [x] 将 `META.json` 的 `status` 改为 `completed`，并与 `s1-baseline-report_CN.md` 数值与 §7 路径同步（2026-05-15）

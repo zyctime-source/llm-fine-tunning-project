@@ -3,7 +3,7 @@
 | 属性 | 值 |
 |------|-----|
 | **数据版本** | `v1.0` |
-| **文档版本** | 1.3 |
+| **文档版本** | 1.4 |
 | **状态** | 已冻结（配方 + 本地快照规则）；**自建种子 500 当前明确跳过**（见 §1、§2、§4.5.2） |
 | **对齐 shaping** | [_docs/shaping/7_data_CN.md](../shaping/7_data_CN.md) §7.3.1 |
 | **流水线代码** | 仓库 `data_pipeline/`（生成脚本）；本规格描述**内容与追溯**，不重复实现细节 |
@@ -259,4 +259,4 @@ data/raw/seed_v1.0/
 | 2026-05-12 | 初版：对齐已落地的 `data_pipeline` + `data/raw` + `data/processed` 快照与 `download_meta` |
 | 2026-05-12 | §4.5.1（彼时 §4.4.1）：补充自建种子 500 的建立步骤与 JSON 字段建议 |
 | 2026-05-14 | 「通用混合」默认抽样 4k 后拆 `general_mixed_train` / `general_mixed_validation`；脑暴验证 `export-brainstorm-val`、§3.5、§4.4；自建种子顺延 §4.5；文档版本 **1.2** |
-| 2026-05-14 | **1.3**：§2 增「验证集」对照表；§4.1 明确有效行 = 可解析 JSON 与 export 计数一致；§3.1 注明 `validation_en.jsonl` 非 `download` 产物；§6 增缺译 / 旧 `general_mixed` 风险；§7 补 sprint 备忘与 EN 链接 |
+| 2026-05-17 | 无训练数据配方变更：交叉索引——Layer 2 **评测**基线产物见 [experiment/baseline-gemma4e2b-it-layer2-v0/META.json](../../experiment/baseline-gemma4e2b-it-layer2-v0/META.json)（`v1.0` 训练子集与 manifest 定义不变）。 |

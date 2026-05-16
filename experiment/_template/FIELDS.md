@@ -15,8 +15,12 @@
 | `evaluation` | object | manifest 与 `eval-protocol-v*`；无评测可留空对象或删字段（需在团队内统一）。 |
 | `results.*` | string \| null | 本地或相对仓库的产出路径；跑完后填写。 |
 | `results.raw_outputs_dir` | string \| null | 原始推理 JSONL 等所在**目录**（相对仓库根）。 |
-| `results.smoke_infer_jsonl` | string \| null | （可选）Layer 2 冒烟脚本单次输出的 JSONL 文件路径。 |
+| `results.smoke_infer_jsonl` | string \| null | （可选）Layer 2 **冒烟**（小批量）推理 JSONL 路径；与全量 `layer2_infer_jsonl` 并存时，冒烟用于历史对照。 |
 | `results.smoke_infer_profile` | object \| null | （可选）冒烟参数摘要：`items`、`max_new_tokens`、`script`。 |
+| `results.layer2_infer_jsonl` | string \| null | （可选）Layer 2 **全量**（如 500 条）推理 JSONL 路径。 |
+| `results.metrics_path` | string \| null | （可选）评委逐条输出 JSONL（如 `layer2_judge_scores.jsonl`）。 |
+| `results.judge_summary_json` | string \| null | （可选）`aggregate_layer2_judge_scores.py` 生成的分层汇总 JSON。 |
+| `results.layer2_infer_profile` | object \| null | （可选）全量推理参数摘要：与 `smoke_infer_profile` 同形。 |
 | `baseline_scores` / `result_scores` | object \| null | 摘要指标；详细表留在报告或 `results/`。 |
 | `decision` | string \| null | `accept` \| `iterate` \| `reject`；评测基线可选 `null`。 |
 

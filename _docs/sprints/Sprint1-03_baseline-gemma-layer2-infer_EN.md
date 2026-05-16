@@ -197,11 +197,68 @@ After completing full inference, perform the following steps:
 
 1. Write full JSONL path into **`META.json`** `results` field (or extended convention fields), and populate "Raw Model Outputs" path in **s1-baseline-report §7**  
 2. (Optional) Per §4.1, integrate **judge** `qwen3.6-plus` for scoring  
-3. Populate layered summary and redline conclusions into **§5–§6**, and synchronize `status` in **`META.json`** with report status as part of finalization workflow (see baseline README "To-Do" section)
+3. Populate layered summary and redline conclusions into **s1-baseline-report §5–§6** (Sprint memo **§7** carries a short excerpt aligned with the report), and synchronize `status` in **`META.json`** with report status as part of finalization workflow (see baseline README "To-Do" section)
+
+### 6.3.1 Status (2026-05-17)
+
+For **this** repository instance, the Week 1 baseline is **finished**: **500** Layer 2 completions in **`experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl`** (greedy, `max_new_tokens=2048`), judge lines in **`layer2_judge_scores.jsonl`**, and summary statistics in **`layer2_judge_summary.json`**. Canonical paths and `result_scores` are recorded in **[experiment/baseline-gemma4e2b-it-layer2-v0/META.json](../../experiment/baseline-gemma4e2b-it-layer2-v0/META.json)** (`status=completed`). The authoritative write-up is **[s1-baseline-report_CN.md](../execution/s1-baseline-report_CN.md)** (Chinese; §5–§6). A **mirrored excerpt** appears in this memo as **§7** below.
 
 ---
 
-## 7. Related Document Index
+## 7. Baseline results and redlines (excerpt aligned with s1-baseline-report)
+
+> **Source of truth** for narrative and full tables: [_docs/execution/s1-baseline-report_CN.md](../execution/s1-baseline-report_CN.md) **§5–§6** (Chinese). Numbers below come from **`experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_summary.json`** (`judge_parse_ok=true`), produced by **`scripts/aggregate_layer2_judge_scores.py`**. Standard deviation was **not** computed by the summary script (shown as **—**).
+
+### 7.1 Mean scores by stratum (core / general / zh_guard)
+
+#### Core (~200)
+
+| Dimension | Mean | Std dev | Notes |
+|-----------|------|---------|-------|
+| Relevance | 95.60 | — | n=200 |
+| Coherence | 95.26 | — | |
+| Helpfulness | 93.22 | — | |
+| Creativity | 87.08 | — | |
+| **overall** | **93.35** | — | Holistic 1–100 |
+
+#### General (~200)
+
+| Dimension | Mean | Std dev | Notes |
+|-----------|------|---------|-------|
+| Relevance | 94.50 | — | n=200; many English instructions → `chinese_quality` often **100** (N/A) |
+| Coherence | 83.26 | — | |
+| Helpfulness | 81.91 | — | |
+| Creativity | 74.12 | — | |
+| **overall** | **81.85** | — | |
+
+#### zh_guard (~100)
+
+| Dimension | Mean | Std dev | Notes |
+|-----------|------|---------|-------|
+| chinese_quality | 92.86 | — | n=100 |
+| Relevance | 88.00 | — | |
+| Coherence | 79.10 | — | |
+| **overall** | **77.94** | — | Well below core; see P2 below |
+
+#### Failure cases (Should)
+
+- This run: **500 / 500** judge parses succeeded. If `judge_parse_ok=false` appears later, inspect `judge_error` / `judge_raw_preview` in `layer2_judge_scores.jsonl`, then re-run or arbitrate.
+
+### 7.2 Redline summary (P0 / P1 / P2)
+
+Definitions: [_docs/shaping/9_eval_qa_CN.md](../shaping/9_eval_qa_CN.md) §9.3 (Chinese shaping doc).
+
+| Level | Triggered? | Evidence | Action |
+|-------|--------------|----------|--------|
+| **P0** safety | ☑ No | No dedicated red-team set; Layer 2 is a proxy regression set | Update if a future audit finds issues |
+| **P1** function | ☑ No | No protocol-wide failure; **0** judge parse failures | Per shaping: stop and roll back if triggered |
+| **P2** experience | ☑ Yes (warning) | **zh_guard** `overall` mean **77.94** vs **core 93.35** and pooled mean **85.67** (see §7.1) | Monitor Chinese scenarios in PoC / data recipe; optional Qwen baseline per shaping |
+
+**Takeaway**: **Week 2 PoC may proceed**; treat **zh_guard** as a first-class acceptance metric in iterations.
+
+---
+
+## 8. Related Document Index
 
 | Document | Purpose |
 |----------|---------|
@@ -209,16 +266,18 @@ After completing full inference, perform the following steps:
 | [_docs/execution/s1-baseline-report_CN.md](../execution/s1-baseline-report_CN.md) | Model under test table, Layer 2 definition, `eval-protocol-v0`, judges, and report structure |
 | [experiment/baseline-gemma4e2b-it-layer2-v0/README.md](../../experiment/baseline-gemma4e2b-it-layer2-v0/README.md) | This experiment directory conventions, installation and smoke steps, to-do list |
 | [experiment/README.md](../../experiment/README.md) | Evaluation venv, HF login and mirror configuration |
+| [scripts/layer2_judge_scores.py](../../scripts/layer2_judge_scores.py) | Layer 2 judge scoring (DashScope `qwen3.6-plus` → `layer2_judge_scores.jsonl`) |
+| [scripts/aggregate_layer2_judge_scores.py](../../scripts/aggregate_layer2_judge_scores.py) | Aggregate judge JSONL → `layer2_judge_summary.json` (per-stratum mean/median) |
 | [Sprint1-layer2-manifest_EN.md](Sprint1-layer2-manifest_EN.md) | Manifest generation, fields and layer meanings |
 | [_docs/eval/layer2/README.md](../eval/layer2/README.md) | Manifest paths and proxy data source notes |
 
 ---
 
-## 8. Revision History
+## 9. Revision History
 
 | Date | Revision |
 |------|----------|
 | 2026-05-14 | Initial version: Connects shaping selection, Hub download and revision, `requirements-eval`, smoke and full manifest inference (including `--resume` / `--out`) |
 | 2026-05-14 | Language optimization: Simplified long sentences, unified terminology, clarified naming relationships, optimized paragraph structure |
 | 2026-05-14 | §2.3 Added "2B-Class Candidates: Why Prioritize Gemma (Instead of Qwen)", explaining selection logic and PoC phase comparison plan |
-| 2026-05-14 | §3.1 Added model download code snippet (Python `from_pretrained` method) |
+| 2026-05-17 | §6.3.1: baseline completed in-repo. **New §7**: results + redlines excerpt (aligned with `s1-baseline-report_CN.md` §5–§6); former §7/§8 → §8/§9 |

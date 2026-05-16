@@ -36,7 +36,7 @@
 交付物：
 
 - `s1-data-v1.0-spec`（文档）— 已定稿：[_docs/execution/s1-data-v1.0-spec_CN.md](s1-data-v1.0-spec_CN.md)
-- `s1-baseline-report`（报告）— 骨架已建：[_docs/execution/s1-baseline-report_CN.md](s1-baseline-report_CN.md)（跑完 Layer2 后填入实测并改状态为已定稿）
+- `s1-baseline-report`（报告）— **已定稿（数值已填）**：[_docs/execution/s1-baseline-report_CN.md](s1-baseline-report_CN.md)（与 `baseline-gemma4e2b-it-layer2-v0/META.json` 对齐，2026-05-17）
 - 实验元数据模板 + 基线实例（草稿）：[experiment/README.md](../../experiment/README.md)（`_template/` 与 `baseline-gemma4e2b-it-layer2-v0/`）
 
 ### Week 2：PoC 快速闭环

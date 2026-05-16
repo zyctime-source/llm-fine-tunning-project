@@ -31,8 +31,11 @@
     "artifacts_dir": null,
     "raw_outputs_dir": null,
     "metrics_path": null,
+    "layer2_infer_jsonl": null,
+    "judge_summary_json": null,
     "smoke_infer_jsonl": null,
-    "smoke_infer_profile": null
+    "smoke_infer_profile": null,
+    "layer2_infer_profile": null
   },
   "baseline_scores": null,
   "result_scores": null,

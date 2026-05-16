@@ -15,7 +15,7 @@
 
 | 目录 | 说明 |
 |------|------|
-| [baseline-gemma4e2b-it-layer2-v0](baseline-gemma4e2b-it-layer2-v0/) | Sprint 1 Week 1 基线评测（Layer 2 + `eval-protocol-v0`），**草稿**；跑完后回填 `META.json` 与 [s1-baseline-report](../_docs/execution/s1-baseline-report_CN.md)。 |
+| [baseline-gemma4e2b-it-layer2-v0](baseline-gemma4e2b-it-layer2-v0/) | Sprint 1 Week 1 基线评测（Layer 2 + `eval-protocol-v0`），**已完成**（`META.json` `status=completed`；见 [s1-baseline-report_CN.md](../_docs/execution/s1-baseline-report_CN.md)）。 |
 
 新建训练实验时：复制 `_template/`，重命名目录，将 `META.eval.template.json` 换为 `META.template.json` 并改名为 `META.json`，按需删改字段。
 
@@ -111,9 +111,29 @@ python scripts/layer2_smoke_infer.py --limit 3 --max-new-tokens 128
 |------|------|
 | 依赖清单 | [requirements-eval.txt](../requirements-eval.txt) |
 | 冒烟脚本（manifest 前 N 条 + 贪心解码） | [scripts/layer2_smoke_infer.py](../scripts/layer2_smoke_infer.py) |
+| 评委打分（DashScope `qwen3.6-plus`，对齐 s1-baseline-report §4.1） | [scripts/layer2_judge_scores.py](../scripts/layer2_judge_scores.py) |
+| 评委结果汇总（分层 mean/median → `layer2_judge_summary.json`） | [scripts/aggregate_layer2_judge_scores.py](../scripts/aggregate_layer2_judge_scores.py) |
 | 默认推理输出目录 | `experiment/baseline-gemma4e2b-it-layer2-v0/results/`（见该目录 [README](baseline-gemma4e2b-it-layer2-v0/README.md)） |
 
 ```shell
 python scripts/layer2_smoke_infer.py --dry-run --limit 5
 python scripts/layer2_smoke_infer.py --limit 3 --max-new-tokens 128
 ```
+
+### Layer 2 评委打分（可选）
+
+依赖与数据侧翻译相同：根目录 `.env` 中配置 **`DASHSCOPE_API_KEY`**，以及 **`DASHSCOPE_OPENAI_BASE_URL`**（默认国内兼容模式 URL）。需已 `pip install -r requirements-eval.txt`（含 `openai`、`tenacity`）。
+
+在 **Gemma 推理 JSONL** 跑出一批或全部后，对每条 `layer2_id` 调用评委模型（默认 **`qwen3.6-plus`**，可用环境变量 `LAYER2_JUDGE_MODEL` 或 `--judge-model` 覆盖）：
+
+```shell
+python scripts/layer2_judge_scores.py --manifest data/eval/layer2/manifest_v0.jsonl --infer-jsonl experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl --out experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl
+
+python scripts/layer2_judge_scores.py --manifest data/eval/layer2/manifest_v0.jsonl --infer-jsonl experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl --out experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl --resume
+
+python scripts/layer2_judge_scores.py --manifest data/eval/layer2/manifest_v0.jsonl --infer-jsonl experiment/baseline-gemma4e2b-it-layer2-v0/results/smoke_infer_20260514T1009Z.jsonl --out experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl --limit 10
+```
+
+- **`--resume`**：`--out` 中已出现过的 `layer2_id` 会跳过；若要重评某条，先从输出文件中删除对应行。  
+- 输出每行含 `scores`（解析成功时）或 `judge_error` / `judge_raw_preview`（解析失败时）；与 manifest 对齐的维度见 [_docs/execution/s1-baseline-report_CN.md](../_docs/execution/s1-baseline-report_CN.md) §4.1。
+

@@ -1,0 +1,172 @@
+{
+  "schema": "layer2-judge-summary-v0",
+  "source_judge_jsonl": "experiment/baseline-gemma4e2b-it-layer2-v0/results/layer2_judge_scores.jsonl",
+  "generated_at": "2026-05-16T01:08:40Z",
+  "judge_model": "qwen3.6-plus",
+  "counts": {
+    "rows_after_dedupe": 500,
+    "rows_total_before_dedupe": 500,
+    "duplicate_layer2_ids_collapsed": 0,
+    "rows_missing_layer2_id": 0,
+    "judge_parse_ok": 500,
+    "judge_parse_fail": 0
+  },
+  "by_stratum": {
+    "core": {
+      "n": 200,
+      "relevance": {
+        "mean": 95.595,
+        "median": 95.0
+      },
+      "coherence": {
+        "mean": 95.255,
+        "median": 95.0
+      },
+      "helpfulness": {
+        "mean": 93.22,
+        "median": 95.0
+      },
+      "creativity": {
+        "mean": 87.08,
+        "median": 88.0
+      },
+      "clarity": {
+        "mean": 95.51,
+        "median": 95.0
+      },
+      "task_alignment": {
+        "mean": 95.11,
+        "median": 95.0
+      },
+      "depth": {
+        "mean": 90.565,
+        "median": 90.0
+      },
+      "chinese_quality": {
+        "mean": 95.595,
+        "median": 95.0
+      },
+      "overall": {
+        "mean": 93.35,
+        "median": 94.0
+      }
+    },
+    "general": {
+      "n": 200,
+      "relevance": {
+        "mean": 94.5,
+        "median": 100.0
+      },
+      "coherence": {
+        "mean": 83.255,
+        "median": 90.0
+      },
+      "helpfulness": {
+        "mean": 81.91,
+        "median": 90.0
+      },
+      "creativity": {
+        "mean": 74.115,
+        "median": 80.0
+      },
+      "clarity": {
+        "mean": 92.165,
+        "median": 95.0
+      },
+      "task_alignment": {
+        "mean": 82.55,
+        "median": 90.0
+      },
+      "depth": {
+        "mean": 76.875,
+        "median": 80.0
+      },
+      "chinese_quality": {
+        "mean": 100.0,
+        "median": 100.0
+      },
+      "overall": {
+        "mean": 81.85,
+        "median": 90.0
+      }
+    },
+    "zh_guard": {
+      "n": 100,
+      "relevance": {
+        "mean": 88.0,
+        "median": 95.0
+      },
+      "coherence": {
+        "mean": 79.1,
+        "median": 85.0
+      },
+      "helpfulness": {
+        "mean": 77.03,
+        "median": 85.0
+      },
+      "creativity": {
+        "mean": 74.6,
+        "median": 80.0
+      },
+      "clarity": {
+        "mean": 87.55,
+        "median": 90.0
+      },
+      "task_alignment": {
+        "mean": 76.31,
+        "median": 85.0
+      },
+      "depth": {
+        "mean": 75.4,
+        "median": 85.0
+      },
+      "chinese_quality": {
+        "mean": 92.86,
+        "median": 95.0
+      },
+      "overall": {
+        "mean": 77.94,
+        "median": 85.0
+      }
+    }
+  },
+  "all_parse_ok": {
+    "n": 500,
+    "relevance": {
+      "mean": 93.638,
+      "median": 95.0
+    },
+    "coherence": {
+      "mean": 87.224,
+      "median": 95.0
+    },
+    "helpfulness": {
+      "mean": 85.458,
+      "median": 95.0
+    },
+    "creativity": {
+      "mean": 79.398,
+      "median": 85.0
+    },
+    "clarity": {
+      "mean": 92.58,
+      "median": 95.0
+    },
+    "task_alignment": {
+      "mean": 86.326,
+      "median": 95.0
+    },
+    "depth": {
+      "mean": 82.056,
+      "median": 90.0
+    },
+    "chinese_quality": {
+      "mean": 96.81,
+      "median": 100.0
+    },
+    "overall": {
+      "mean": 85.668,
+      "median": 93.0
+    }
+  }
+}
