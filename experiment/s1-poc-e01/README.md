@@ -69,10 +69,10 @@
 - [x] 保存 LoRA 权重
 - [x] 训练时间: 385.28 秒 (~6.4 分钟) @ AutoDL RTX 5090
 
-### Day 3：验证（进行中）
-- [ ] 下载 LoRA 权重到本地
-- [ ] 验证 LoRA 权重可加载
-- [ ] 跑 Layer 2 冒烟测试（前 10 条）
+### Day 3：验证（已完成 ✓）
+- [x] 验证 LoRA 权重可加载（AutoDL 直接验证）
+- [x] 推理测试通过（输出正常）
+- [x] LoRA 权重 5.14 MB，可训练参数 0.0000%（冻结基座）
 
 ### Day 4：评估
 - [ ] 执行 Layer 2 全量推理（500 条）
@@ -131,7 +131,7 @@
 | LoRA 配置 | `adapter_config.json` | ✅ 已生成 (AutoDL) |
 | LoRA 权重 | `adapter_model.safetensors` | ✅ 已生成 (AutoDL) |
 | 训练日志 | `training.log` | ✅ 已生成 (AutoDL) |
-| 评估结果 | `results/` | ⏳ D4 执行 |
+| 评估结果 | `results/` | ⏳ D4 执行（Layer 2 全量 500 条） |
 
 ## 参考文档
 
