@@ -80,8 +80,10 @@
 
 **关键交付物**：
 - `s1-data-v1.0-spec`（已定稿）
-- `s1-baseline-report`（骨架已建，跑完 500 条后填入实测）
-- 实验元数据模板 + 基线实例草稿
+- `s1-baseline-report`（已定稿：500 条推理 + 评委 + §5–§6 数值与红线，2026-05-17）
+- 实验元数据模板 + 基线实例（`baseline-gemma4e2b-it-layer2-v0/META.json` 已回填并完成）
+
+**Week 1 结案小结**（收束路径与结论）：[Sprint1-04_week1_done_summary_CN.md](Sprint1-04_week1_done_summary_CN.md)
 
 ---
 
@@ -198,6 +200,7 @@ Sprint 1 结束时（Week 4 最后 1-2 天），按以下结构输出复盘：
 
 | 文档 | 用途 |
 |------|------|
+| [Sprint1-04_week1_done_summary_CN.md](Sprint1-04_week1_done_summary_CN.md) | Week 1 结案：交付物路径与基线结论摘要 |
 | [Sprint1-dataset_download_processing_CN.md](Sprint1-dataset_download_processing_CN.md) | Week 1 数据准备细节 |
 | [Sprint1-layer2-manifest_CN.md](Sprint1-layer2-manifest_CN.md) | Week 1 评测题单生成 |
 | [Sprint1-03_baseline-gemma-layer2-infer_CN.md](Sprint1-03_baseline-gemma-layer2-infer_CN.md) | Week 1 基线推理执行 |
@@ -212,4 +215,5 @@ Sprint 1 结束时（Week 4 最后 1-2 天），按以下结构输出复盘：
 
 | 日期 | 修订 |
 |------|------|
+| 2026-05-17 | Week 1 关键交付物表述更新（`s1-baseline-report` 已定稿、`META.json` 已回填）；新增结案备忘 [Sprint1-04_week1_done_summary_CN.md](Sprint1-04_week1_done_summary_CN.md) 与 §8 索引一行 |
 | 2026-05-14 | 初版：整合 sprint-1-train.md 主线，增加任务总览视角、四周进度表、风险预案与复盘模板 |
