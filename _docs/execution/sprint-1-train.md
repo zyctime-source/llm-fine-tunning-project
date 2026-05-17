@@ -41,23 +41,44 @@
 
 **Week 1 结案小结**（交付物路径与结论一览）：[_docs/sprints/Sprint1-04_week1_done_summary_CN.md](../../_docs/sprints/Sprint1-04_week1_done_summary_CN.md)
 
-### Week 2：PoC 快速闭环
+### Week 2：PoC 快速闭环（已完成 ✅）
 
-- 完成 1 次 PoC 训练并产出可加载 LoRA。
-- 执行 PoC 后回归评估，输出 Accept / Iterate / Reject 决策。
+- ✅ 完成 1 次 PoC 训练并产出可加载 LoRA（RTX 5090，6.4 分钟，loss=1.9343）。
+- ✅ 执行 PoC 后回归评估（480/500 条，成功率 99.8%）。
+- ✅ 输出决策：**ACCEPT**（进入 Stage 1）。
 
-交付物：
-- `s1-poc-e01`（实验记录）
-- `s1-poc-e01-eval`（评估结果）
+交付物（已完成）：
+- `s1-poc-e01`（实验记录）— 路径：`experiment/s1-poc-e01/`
+- `s1-poc-e01-eval`（评估结果）— 路径：`experiment/s1-poc-e01/results/`
+- 评估报告 — 路径：`experiment/s1-poc-e01/EVALUATION_REPORT.md`
 
-### Week 3：Stage 1 保守训练
+**评估结果 vs 基线**：
+| 子层 | 基线 | PoC | 变化 | 评价 |
+|------|------|-----|------|------|
+| core | 93.35 | 80.68 | -13.6% | ✅ 可用 |
+| general | 81.85 | 67.23 | -17.9% | ⚠️ 下降 |
+| zh_guard | 77.94 | 44.71 | -42.6% | ❌ 需优化 |
+
+**Week 2 结案文档**：[_docs/sprints/Sprint1-08_layer2_eval_workflow_CN.md](../sprints/Sprint1-08_layer2_eval_workflow_CN.md)
+
+### Week 3：Stage 1 保守训练（准备中）
 
 - 在 PoC 结论基础上完成 1 次 Stage 1 保守训练。
+- 重点优化 zh_guard 层（目标 60+，当前 44.71）。
 - 同步记录失败样本与异常输入行为。
 
-交付物：
+**Stage 1 配置建议**（基于 PoC 结果）：
+- 数据：完整 13k（brainstorm_cn 比例 50%+）
+- 训练：epoch 2-3（vs PoC epoch=1），rank 8-16
+- 评估：自动触发 Layer 2 回归，重点观察 zh_guard
+
+交付物（计划中）：
 - `s1-train-e01`（实验记录）
 - `s1-train-e01-error-cases`（问题清单）
+
+**依赖输入**（Week 2 产出）：
+- PoC 决策：ACCEPT
+- 改进方向：中文比例提升、epoch 增加、深度样本筛选
 
 ### Week 4：收敛与 Gate1 评审
 

@@ -1,7 +1,7 @@
 # Sprint 1 Week 1 Completion Report: Data and Baseline Preparation
 
 > **Type**: Personal Project Technical Memo  
-> **Date**: 2026-05-17  
+> **Date**: 2026-05-16  
 > **GitHub repo**: https://github.com/zyctime-source/llm-fine-tunning-project  
 > **Mainline Reference**: [_docs/execution/sprint-1-train.md](../execution/sprint-1-train.md) §「Week 1: Data and Baseline Preparation」  
 > **Overview Index**: [Sprint1-00_tasks_intro_EN.md](Sprint1-00_tasks_intro_EN.md) §4 Week 1

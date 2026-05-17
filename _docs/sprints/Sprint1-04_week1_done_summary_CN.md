@@ -1,7 +1,7 @@
 # Sprint 1 Week 1 结案报告：数据与基线准备
 
 > **类型**：个人项目技术备忘  
-> **日期**：2026-05-17  
+> **日期**：2026-05-16  
 > **GitHub repo**：https://github.com/zyctime-source/llm-fine-tunning-project  
 > **主线对照**：[_docs/execution/sprint-1-train.md](../execution/sprint-1-train.md) §「Week 1：数据与基线准备」  
 > **总览索引**：[Sprint1-00_tasks_intro_CN.md](Sprint1-00_tasks_intro_CN.md) §4 Week 1

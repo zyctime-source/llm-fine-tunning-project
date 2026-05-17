@@ -1,4 +1,4 @@
-# Sprint 1 基线评测报告：`s1-baseline-report`
+# Sprint 1 基线评测报告
 
 | 属性 | 值 |
 |------|-----|

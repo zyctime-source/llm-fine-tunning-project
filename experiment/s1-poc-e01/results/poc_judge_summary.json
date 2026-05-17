@@ -1,0 +1,172 @@
+{
+  "schema": "layer2-judge-summary-v0",
+  "source_judge_jsonl": "experiment/s1-poc-e01/results/poc_judge_scores.jsonl",
+  "generated_at": "2026-05-17T01:45:25Z",
+  "judge_model": "qwen3.6-plus",
+  "counts": {
+    "rows_after_dedupe": 480,
+    "rows_total_before_dedupe": 480,
+    "duplicate_layer2_ids_collapsed": 0,
+    "rows_missing_layer2_id": 0,
+    "judge_parse_ok": 479,
+    "judge_parse_fail": 1
+  },
+  "by_stratum": {
+    "core": {
+      "n": 199,
+      "relevance": {
+        "mean": 88.925,
+        "median": 95.0
+      },
+      "coherence": {
+        "mean": 88.141,
+        "median": 95.0
+      },
+      "helpfulness": {
+        "mean": 78.588,
+        "median": 85.0
+      },
+      "creativity": {
+        "mean": 70.055,
+        "median": 75.0
+      },
+      "clarity": {
+        "mean": 94.497,
+        "median": 95.0
+      },
+      "task_alignment": {
+        "mean": 84.0,
+        "median": 90.0
+      },
+      "depth": {
+        "mean": 72.121,
+        "median": 80.0
+      },
+      "chinese_quality": {
+        "mean": 95.015,
+        "median": 95.0
+      },
+      "overall": {
+        "mean": 80.683,
+        "median": 88.0
+      }
+    },
+    "general": {
+      "n": 200,
+      "relevance": {
+        "mean": 84.655,
+        "median": 100.0
+      },
+      "coherence": {
+        "mean": 86.91,
+        "median": 100.0
+      },
+      "helpfulness": {
+        "mean": 66.87,
+        "median": 80.0
+      },
+      "creativity": {
+        "mean": 47.32,
+        "median": 50.0
+      },
+      "clarity": {
+        "mean": 90.93,
+        "median": 100.0
+      },
+      "task_alignment": {
+        "mean": 72.67,
+        "median": 90.0
+      },
+      "depth": {
+        "mean": 49.72,
+        "median": 52.5
+      },
+      "chinese_quality": {
+        "mean": 100.0,
+        "median": 100.0
+      },
+      "overall": {
+        "mean": 67.225,
+        "median": 78.0
+      }
+    },
+    "zh_guard": {
+      "n": 80,
+      "relevance": {
+        "mean": 57.6,
+        "median": 57.5
+      },
+      "coherence": {
+        "mean": 60.737,
+        "median": 62.5
+      },
+      "helpfulness": {
+        "mean": 42.925,
+        "median": 35.0
+      },
+      "creativity": {
+        "mean": 33.55,
+        "median": 22.5
+      },
+      "clarity": {
+        "mean": 69.287,
+        "median": 80.0
+      },
+      "task_alignment": {
+        "mean": 44.3,
+        "median": 30.0
+      },
+      "depth": {
+        "mean": 33.737,
+        "median": 20.0
+      },
+      "chinese_quality": {
+        "mean": 75.025,
+        "median": 85.0
+      },
+      "overall": {
+        "mean": 44.712,
+        "median": 37.5
+      }
+    }
+  },
+  "all_parse_ok": {
+    "n": 479,
+    "relevance": {
+      "mean": 81.91,
+      "median": 95.0
+    },
+    "coherence": {
+      "mean": 83.05,
+      "median": 95.0
+    },
+    "helpfulness": {
+      "mean": 67.739,
+      "median": 80.0
+    },
+    "creativity": {
+      "mean": 54.466,
+      "median": 60.0
+    },
+    "clarity": {
+      "mean": 88.797,
+      "median": 95.0
+    },
+    "task_alignment": {
+      "mean": 72.639,
+      "median": 90.0
+    },
+    "depth": {
+      "mean": 56.357,
+      "median": 65.0
+    },
+    "chinese_quality": {
+      "mean": 93.758,
+      "median": 100.0
+    },
+    "overall": {
+      "mean": 69.056,
+      "median": 80.0
+    }
+  }
+}
